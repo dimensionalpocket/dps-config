@@ -29,6 +29,7 @@ jobs:
         with:
           toolchain: 1.91.1
           override: true
+          components: rustfmt, clippy
 
       - name: Cache Cargo registry and git
         uses: actions/cache@v4
