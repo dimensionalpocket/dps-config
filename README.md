@@ -56,25 +56,26 @@ fn main() {
 
 ## Configuration Properties
 
-The following properties are provided. Properties load from environment variables when present.
+The following properties are provided. Properties load from environment variables when present.  
+Each property has a getter (`get_<property_name>()`) and a setter (`set_<property_name>(value)`).
 
 ### Global
 
-| Property | Environment Variable | Default | Description | Example |
-|----------|----------------------|---------|-------------|---------|
-| `domain` | `DPS_DOMAIN` | `dps.localhost` | Main domain of the website | `example.com` |
-| `api_subdomain` | `DPS_API_SUBDOMAIN` | `api` | Subdomain for all APIs | |
-| `development_mode` | `DPS_DEVELOPMENT_MODE` | `false` | Enables development-only features | |
+| Property | Environment Variable | Default | Description |
+|----------|----------------------|---------|-------------|
+| `domain` | `DPS_DOMAIN` | `dps.localhost` | Main domain of the website |
+| `api_subdomain` | `DPS_API_SUBDOMAIN` | `api` | Subdomain for all APIs |
+| `development_mode` | `DPS_DEVELOPMENT_MODE` | `false` | Enables development-only features |
 
 ### DpsAuthApi
 
-| Property | Environment Variable | Default | Description | Example |
-|----------|----------------------|---------|-------------|---------|
-| `auth_api_subdomain` | `DPS_AUTH_API_SUBDOMAIN` | `auth` | Sub-subdomain for DpsAuthApi | |
-| `auth_api_port` | `DPS_AUTH_API_PORT` | none | Port for DpsAuthApi (omitted from URL if unset) | `3000` |
-| `auth_api_protocol` | `DPS_AUTH_API_PROTOCOL` | `https` | Protocol for DpsAuthApi | `http` for local dev |
-| `auth_api_sqlite_file_path` | `DPS_AUTH_API_SQLITE_FILE_PATH` | `data/development.db` | SQLite database file path | `/var/data/auth.db` |
-| `auth_api_session_secret` | `DPS_AUTH_API_SESSION_SECRET` | none | 32-byte session secret for encryption | `your-secret-key-here` |
+| Property | Environment Variable | Default | Description |
+|----------|----------------------|---------|-------------|
+| `auth_api_subdomain` | `DPS_AUTH_API_SUBDOMAIN` | `auth` | Sub-subdomain for DpsAuthApi |
+| `auth_api_port` | `DPS_AUTH_API_PORT` | none | Port for DpsAuthApi (omitted from URL if unset) |
+| `auth_api_protocol` | `DPS_AUTH_API_PROTOCOL` | `https` | Protocol for DpsAuthApi |
+| `auth_api_sqlite_file_path` | `DPS_AUTH_API_SQLITE_FILE_PATH` | `data/development.db` | SQLite database file path |
+| `auth_api_session_secret` | `DPS_AUTH_API_SESSION_SECRET` | none | 32-byte session secret for encryption |
 
 ## Computed Getters
 
