@@ -50,6 +50,7 @@ pub struct DpsConfig {
   auth_api_protocol: Option<String>,
   auth_api_sqlite_file_path: Option<String>,
   auth_api_session_secret: Option<String>,
+  auth_api_session_ttl_seconds: Option<u64>,
 }
 
 impl DpsConfig {
@@ -75,6 +76,7 @@ impl DpsConfig {
       auth_api_protocol: load_env_string("DPS_AUTH_API_PROTOCOL"),
       auth_api_sqlite_file_path: load_env_string("DPS_AUTH_API_SQLITE_FILE_PATH"),
       auth_api_session_secret: load_env_string("DPS_AUTH_API_SESSION_SECRET"),
+      auth_api_session_ttl_seconds: load_env_u64("DPS_AUTH_API_SESSION_TTL_SECONDS"),
     }
   }
 
@@ -209,6 +211,19 @@ impl DpsConfig {
       .map(|s| s.as_bytes().to_vec())
   }
 
+  /// Returns the session TTL for auth in seconds. Defaults to 14 days
+  /// (1209600 seconds) when not configured.
+  ///
+  /// Env var: `DPS_AUTH_API_SESSION_TTL_SECONDS`
+  pub fn get_auth_api_session_ttl_seconds(&self) -> u64 {
+    self.auth_api_session_ttl_seconds.unwrap_or(1209600)
+  }
+
+  /// Set or unset the auth session TTL in seconds.
+  pub fn set_auth_api_session_ttl_seconds(&mut self, value: Option<u64>) {
+    self.auth_api_session_ttl_seconds = value;
+  }
+
   // --------------------
   // Computed getters
   // --------------------
@@ -260,6 +275,10 @@ fn load_env_bool(key: &str) -> Option<bool> {
 
 fn load_env_u16(key: &str) -> Option<u16> {
   env::var(key).ok().and_then(|v| v.parse::<u16>().ok())
+}
+
+fn load_env_u64(key: &str) -> Option<u64> {
+  env::var(key).ok().and_then(|v| v.parse::<u64>().ok())
 }
 
 // --------------------
@@ -359,5 +378,22 @@ mod tests {
   fn test_auth_api_session_secret_bytes_none() {
     let config = DpsConfig::new();
     assert!(config.get_auth_api_session_secret_bytes().is_none());
+  }
+
+  #[test]
+  fn test_auth_api_session_ttl_seconds_default_and_set() {
+    let mut c = DpsConfig::new();
+    // default = 14 days in seconds
+    assert_eq!(c.get_auth_api_session_ttl_seconds(), 1209600);
+    c.set_auth_api_session_ttl_seconds(Some(3600));
+    assert_eq!(c.get_auth_api_session_ttl_seconds(), 3600);
+  }
+
+  #[test]
+  fn test_auth_api_session_ttl_seconds_from_env() {
+    std::env::set_var("DPS_AUTH_API_SESSION_TTL_SECONDS", "1800");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_auth_api_session_ttl_seconds(), 1800);
+    std::env::remove_var("DPS_AUTH_API_SESSION_TTL_SECONDS");
   }
 }

@@ -1,4 +1,4 @@
-# dps-config
+# @dimensionalpocket/dps-config
 
 [![Rust Tests](https://github.com/dimensionalpocket/dps-config-rs/actions/workflows/test.yml/badge.svg)](https://github.com/dimensionalpocket/dps-config-rs/actions/workflows/test.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -76,6 +76,7 @@ Each property has a getter (`get_<property_name>()`) and a setter (`set_<propert
 | `auth_api_protocol` | `DPS_AUTH_API_PROTOCOL` | `https` | Protocol for DpsAuthApi |
 | `auth_api_sqlite_file_path` | `DPS_AUTH_API_SQLITE_FILE_PATH` | `data/development.db` | SQLite database file path |
 | `auth_api_session_secret` | `DPS_AUTH_API_SESSION_SECRET` | none | 32-byte session secret for encryption |
+| `auth_api_session_ttl_seconds` | `DPS_AUTH_API_SESSION_TTL_SECONDS` | `1209600` (14 days) | Session TTL in seconds |
 
 ## Computed Getters
 
@@ -132,6 +133,17 @@ mod tests {
         c.set_auth_api_protocol("http");
         c.set_auth_api_port(Some(8080));
         assert_eq!(c.get_auth_api_url(), "http://auth.api.test.local:8080");
+    }
+
+    #[test]
+    fn auth_session_ttl_examples() {
+        let mut c = DpsConfig::new();
+
+        // default is 14 days in seconds
+        assert_eq!(c.get_auth_api_session_ttl_seconds(), 1209600);
+
+        c.set_auth_api_session_ttl_seconds(Some(3600));
+        assert_eq!(c.get_auth_api_session_ttl_seconds(), 3600);
     }
 }
 ```

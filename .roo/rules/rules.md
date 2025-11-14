@@ -1,1 +1,1 @@
-All instructions are located in `docs/llm/instructions.md`.
+ALWAYS READ `docs/llm/instructions.md` BEFORE STARTING ANY TASK.
