@@ -3,8 +3,8 @@
 ## Build/Lint/Test Commands
 
 - **Build**: `cargo build`
-- **Test all**: `cargo test --verbose`
-- **Test single test**: `cargo test <test_name>`
+- **Test all**: `cargo test --quiet`
+- **Test single test**: `cargo test <test_name> --verbose`
 - **Linter**: `cargo clippy --allow-dirty --fix && cargo fmt`
 
 ## Working Guidelines

@@ -52,7 +52,7 @@ pub struct DpsConfig {
   auth_api_sqlite_main_file_path: Option<String>,
   auth_api_sqlite_main_pool_size: Option<u16>,
   auth_api_session_secret: Option<String>,
-  auth_api_session_ttl_seconds: Option<u64>,
+  auth_api_session_ttl_seconds: Option<u32>,
 }
 
 impl DpsConfig {
@@ -83,7 +83,7 @@ impl DpsConfig {
       auth_api_sqlite_main_file_path: load_env_string("DPS_AUTH_API_SQLITE_MAIN_FILE_PATH"),
       auth_api_sqlite_main_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE"),
       auth_api_session_secret: load_env_string("DPS_AUTH_API_SESSION_SECRET"),
-      auth_api_session_ttl_seconds: load_env_u64("DPS_AUTH_API_SESSION_TTL_SECONDS"),
+      auth_api_session_ttl_seconds: load_env_u32("DPS_AUTH_API_SESSION_TTL_SECONDS"),
     }
   }
 
@@ -246,12 +246,12 @@ impl DpsConfig {
   /// (1209600 seconds) when not configured.
   ///
   /// Env var: `DPS_AUTH_API_SESSION_TTL_SECONDS`
-  pub fn get_auth_api_session_ttl_seconds(&self) -> u64 {
+  pub fn get_auth_api_session_ttl_seconds(&self) -> u32 {
     self.auth_api_session_ttl_seconds.unwrap_or(1209600)
   }
 
   /// Set or unset the auth session TTL in seconds.
-  pub fn set_auth_api_session_ttl_seconds(&mut self, value: Option<u64>) {
+  pub fn set_auth_api_session_ttl_seconds(&mut self, value: Option<u32>) {
     self.auth_api_session_ttl_seconds = value;
   }
 
@@ -302,8 +302,8 @@ fn load_env_u16(key: &str) -> Option<u16> {
   env::var(key).ok().and_then(|v| v.parse::<u16>().ok())
 }
 
-fn load_env_u64(key: &str) -> Option<u64> {
-  env::var(key).ok().and_then(|v| v.parse::<u64>().ok())
+fn load_env_u32(key: &str) -> Option<u32> {
+  env::var(key).ok().and_then(|v| v.parse::<u32>().ok())
 }
 
 // --------------------
