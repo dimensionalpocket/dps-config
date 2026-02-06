@@ -1,8 +1,8 @@
-# README Plan for dps-config-rs
+# README Plan for dps-config
 
 ## Overview
 
-This plan outlines the structure and content for the comprehensive README.md file for the `dps-config-rs` repository. The README will serve as the primary documentation for the DpsConfig struct, a configuration management component used across the DPS ecosystem.
+This plan outlines the structure and content for the comprehensive README.md file for the `dps-config` repository. The README will serve as the primary documentation for the DpsConfig struct, a configuration management component used across the DPS ecosystem.
 
 For more information about the DPS ecosystem, see the [DPS README](https://github.com/dimensionalpocket/dps-readme).
 
@@ -17,13 +17,13 @@ For more information about the DPS ecosystem, see the [DPS README](https://githu
 ### 1. Header Section
 
 **Content:**
-- Project title: `# dps-config-rs`
+- Project title: `# dps-config`
 - Brief one-line description
 - Badges (if applicable): build status, crates.io version, license, etc.
 
 **Example:**
 ```markdown
-# dps-config-rs
+# dps-config
 
 Configuration management for the DPS ecosystem
 
@@ -35,7 +35,7 @@ Configuration management for the DPS ecosystem
 ### 2. Overview
 
 **Content:**
-- What is `dps-config-rs`
+- What is `dps-config`
 - Its role in the DPS ecosystem
 - Key design principles (no validation, optional values, default values in getters)
 
@@ -43,7 +43,7 @@ Configuration management for the DPS ecosystem
 ```markdown
 ## Overview
 
-`dps-config-rs` provides the `DpsConfig` struct, a centralized configuration management 
+`dps-config` provides the `DpsConfig` struct, a centralized configuration management
 solution for Rust-based components in the DPS ecosystem. It handles configuration for 
 multiple services including:
 
@@ -76,13 +76,13 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-dps-config = { git = "https://github.com/dimensionalpocket/dps-config-rs" }
+dps-config = { git = "https://github.com/dimensionalpocket/dps-config" }
 ```
 
 Or using cargo:
 
 ```bash
-cargo add --git https://github.com/dimensionalpocket/dps-config-rs dps-config
+cargo add --git https://github.com/dimensionalpocket/dps-config dps-config
 ```
 ```
 
@@ -401,7 +401,7 @@ mise exec -- cargo test
 ### Project Structure
 
 ```
-dps-config-rs/
+dps-config/
 ├── src/
 │   └── lib.rs          # Main library code with DpsConfig struct
 ├── docs/               # Documentation (LLM instructions, plans, drafts, etc.)

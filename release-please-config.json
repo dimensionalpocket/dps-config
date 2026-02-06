@@ -3,7 +3,14 @@
     ".": {
       "release-type": "rust",
       "include-v-in-tag": false,
-      "include-component-in-tag": false
+      "include-component-in-tag": false,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "package.json",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   }
 }

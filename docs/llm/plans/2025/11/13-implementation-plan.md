@@ -1,4 +1,4 @@
-# Implementation Plan for dps-config-rs
+# Implementation Plan for dps-config
 
 ## Overview
 
@@ -53,7 +53,7 @@ edition = "2021"
 authors = ["Dimensional Pocket"]
 license = "MIT"
 description = "Configuration management for the DPS ecosystem"
-repository = "https://github.com/dimensionalpocket/dps-config-rs"
+repository = "https://github.com/dimensionalpocket/dps-config"
 keywords = ["config", "configuration", "dps"]
 categories = ["config"]
 
