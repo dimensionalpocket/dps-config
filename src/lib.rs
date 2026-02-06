@@ -93,7 +93,9 @@ impl DpsConfig {
       auth_api_sqlite_collection_file_path: load_env_string(
         "DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH",
       ),
-      auth_api_sqlite_collection_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE"),
+      auth_api_sqlite_collection_pool_size: load_env_u16(
+        "DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE",
+      ),
       auth_api_sqlite_session_file_path: load_env_string("DPS_AUTH_API_SQLITE_SESSION_FILE_PATH"),
       auth_api_sqlite_session_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE"),
       auth_api_session_secret: load_env_string("DPS_AUTH_API_SESSION_SECRET"),
