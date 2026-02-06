@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/dimensionalpocket/dps-config/compare/0.6.0...0.7.0) (2026-02-06)
+
+
+### Features
+
+* add Bun support and update repository URLs ([#20](https://github.com/dimensionalpocket/dps-config/issues/20)) ([5bc80e6](https://github.com/dimensionalpocket/dps-config/commit/5bc80e69ac044afb4a7d424e47da7a7c3b4916fe))
+
 ## [0.6.0](https://github.com/dimensionalpocket/dps-config/compare/0.5.0...0.6.0) (2026-02-06)
 
 
