@@ -51,6 +51,10 @@ pub struct DpsConfig {
   auth_api_insecure_cookie: Option<bool>,
   auth_api_sqlite_main_file_path: Option<String>,
   auth_api_sqlite_main_pool_size: Option<u16>,
+  auth_api_sqlite_collection_file_path: Option<String>,
+  auth_api_sqlite_collection_pool_size: Option<u16>,
+  auth_api_sqlite_session_file_path: Option<String>,
+  auth_api_sqlite_session_pool_size: Option<u16>,
   auth_api_session_secret: Option<String>,
   auth_api_session_ttl_seconds: Option<u32>,
 }
@@ -69,6 +73,10 @@ impl DpsConfig {
   /// - `DPS_AUTH_API_INSECURE_COOKIE` (use `"Y"` for true)
   /// - `DPS_AUTH_API_SQLITE_MAIN_FILE_PATH`
   /// - `DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE`
+  /// - `DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH`
+  /// - `DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE`
+  /// - `DPS_AUTH_API_SQLITE_SESSION_FILE_PATH`
+  /// - `DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE`
   /// - `DPS_AUTH_API_SESSION_SECRET`
   /// - `DPS_AUTH_API_SESSION_TTL_SECONDS`
   pub fn new() -> Self {
@@ -82,6 +90,12 @@ impl DpsConfig {
       auth_api_insecure_cookie: load_env_bool("DPS_AUTH_API_INSECURE_COOKIE"),
       auth_api_sqlite_main_file_path: load_env_string("DPS_AUTH_API_SQLITE_MAIN_FILE_PATH"),
       auth_api_sqlite_main_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE"),
+      auth_api_sqlite_collection_file_path: load_env_string(
+        "DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH",
+      ),
+      auth_api_sqlite_collection_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE"),
+      auth_api_sqlite_session_file_path: load_env_string("DPS_AUTH_API_SQLITE_SESSION_FILE_PATH"),
+      auth_api_sqlite_session_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE"),
       auth_api_session_secret: load_env_string("DPS_AUTH_API_SESSION_SECRET"),
       auth_api_session_ttl_seconds: load_env_u32("DPS_AUTH_API_SESSION_TTL_SECONDS"),
     }
@@ -219,6 +233,66 @@ impl DpsConfig {
     self.auth_api_sqlite_main_pool_size = value;
   }
 
+  /// Returns the SQLite collection database file path for the Auth API or
+  /// default `"data/collection-development.db"`.
+  ///
+  /// Env var: `DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH`
+  pub fn get_auth_api_sqlite_collection_file_path(&self) -> String {
+    self
+      .auth_api_sqlite_collection_file_path
+      .clone()
+      .unwrap_or_else(|| "data/collection-development.db".to_string())
+  }
+
+  /// Set the SQLite collection database file path for Auth API.
+  pub fn set_auth_api_sqlite_collection_file_path(&mut self, value: &str) {
+    self.auth_api_sqlite_collection_file_path = Some(value.to_string());
+  }
+
+  /// Returns the SQLite collection database connection pool size for Auth API.
+  /// Defaults to `1`.
+  ///
+  /// Env var: `DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE`
+  pub fn get_auth_api_sqlite_collection_pool_size(&self) -> u16 {
+    self.auth_api_sqlite_collection_pool_size.unwrap_or(1)
+  }
+
+  /// Set the SQLite collection database connection pool size for Auth API.
+  /// Use `None` to reset to default.
+  pub fn set_auth_api_sqlite_collection_pool_size(&mut self, value: Option<u16>) {
+    self.auth_api_sqlite_collection_pool_size = value;
+  }
+
+  /// Returns the SQLite session database file path for the Auth API or default
+  /// `"data/session-development.db"`.
+  ///
+  /// Env var: `DPS_AUTH_API_SQLITE_SESSION_FILE_PATH`
+  pub fn get_auth_api_sqlite_session_file_path(&self) -> String {
+    self
+      .auth_api_sqlite_session_file_path
+      .clone()
+      .unwrap_or_else(|| "data/session-development.db".to_string())
+  }
+
+  /// Set the SQLite session database file path for Auth API.
+  pub fn set_auth_api_sqlite_session_file_path(&mut self, value: &str) {
+    self.auth_api_sqlite_session_file_path = Some(value.to_string());
+  }
+
+  /// Returns the SQLite session database connection pool size for Auth API.
+  /// Defaults to `1`.
+  ///
+  /// Env var: `DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE`
+  pub fn get_auth_api_sqlite_session_pool_size(&self) -> u16 {
+    self.auth_api_sqlite_session_pool_size.unwrap_or(1)
+  }
+
+  /// Set the SQLite session database connection pool size for Auth API.
+  /// Use `None` to reset to default.
+  pub fn set_auth_api_sqlite_session_pool_size(&mut self, value: Option<u16>) {
+    self.auth_api_sqlite_session_pool_size = value;
+  }
+
   /// Returns the auth API session secret as an owned `String`, if configured.
   ///
   /// Env var: `DPS_AUTH_API_SESSION_SECRET`
@@ -330,6 +404,16 @@ mod tests {
       "data/main-development.db"
     );
     assert_eq!(config.get_auth_api_sqlite_main_pool_size(), 1);
+    assert_eq!(
+      config.get_auth_api_sqlite_collection_file_path(),
+      "data/collection-development.db"
+    );
+    assert_eq!(config.get_auth_api_sqlite_collection_pool_size(), 1);
+    assert_eq!(
+      config.get_auth_api_sqlite_session_file_path(),
+      "data/session-development.db"
+    );
+    assert_eq!(config.get_auth_api_sqlite_session_pool_size(), 1);
     assert!(config.get_auth_api_port().is_none());
     assert!(config.get_auth_api_session_secret().is_none());
     assert!(config.get_auth_api_session_secret_bytes().is_none());
@@ -438,6 +522,98 @@ mod tests {
     let c2 = DpsConfig::new();
     assert_eq!(c2.get_auth_api_sqlite_main_file_path(), "data/test-main.db");
     std::env::remove_var("DPS_AUTH_API_SQLITE_MAIN_FILE_PATH");
+  }
+
+  #[test]
+  #[serial]
+  fn test_auth_api_sqlite_collection_pool_size() {
+    // Test default and setter
+    let mut c = DpsConfig::new();
+    assert_eq!(c.get_auth_api_sqlite_collection_pool_size(), 1);
+    c.set_auth_api_sqlite_collection_pool_size(Some(12));
+    assert_eq!(c.get_auth_api_sqlite_collection_pool_size(), 12);
+    c.set_auth_api_sqlite_collection_pool_size(None);
+    assert_eq!(c.get_auth_api_sqlite_collection_pool_size(), 1);
+
+    // Test env var loading
+    std::env::set_var("DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE", "8");
+    let c2 = DpsConfig::new();
+    assert_eq!(c2.get_auth_api_sqlite_collection_pool_size(), 8);
+    std::env::remove_var("DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE");
+  }
+
+  #[test]
+  #[serial]
+  fn test_auth_api_sqlite_collection_file_path() {
+    // Test default and setter
+    let mut c = DpsConfig::new();
+    assert_eq!(
+      c.get_auth_api_sqlite_collection_file_path(),
+      "data/collection-development.db"
+    );
+    c.set_auth_api_sqlite_collection_file_path("data/custom-collection.db");
+    assert_eq!(
+      c.get_auth_api_sqlite_collection_file_path(),
+      "data/custom-collection.db"
+    );
+
+    // Test env var loading
+    std::env::set_var(
+      "DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH",
+      "data/test-collection.db",
+    );
+    let c2 = DpsConfig::new();
+    assert_eq!(
+      c2.get_auth_api_sqlite_collection_file_path(),
+      "data/test-collection.db"
+    );
+    std::env::remove_var("DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH");
+  }
+
+  #[test]
+  #[serial]
+  fn test_auth_api_sqlite_session_pool_size() {
+    // Test default and setter
+    let mut c = DpsConfig::new();
+    assert_eq!(c.get_auth_api_sqlite_session_pool_size(), 1);
+    c.set_auth_api_sqlite_session_pool_size(Some(12));
+    assert_eq!(c.get_auth_api_sqlite_session_pool_size(), 12);
+    c.set_auth_api_sqlite_session_pool_size(None);
+    assert_eq!(c.get_auth_api_sqlite_session_pool_size(), 1);
+
+    // Test env var loading
+    std::env::set_var("DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE", "8");
+    let c2 = DpsConfig::new();
+    assert_eq!(c2.get_auth_api_sqlite_session_pool_size(), 8);
+    std::env::remove_var("DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE");
+  }
+
+  #[test]
+  #[serial]
+  fn test_auth_api_sqlite_session_file_path() {
+    // Test default and setter
+    let mut c = DpsConfig::new();
+    assert_eq!(
+      c.get_auth_api_sqlite_session_file_path(),
+      "data/session-development.db"
+    );
+    c.set_auth_api_sqlite_session_file_path("data/custom-session.db");
+    assert_eq!(
+      c.get_auth_api_sqlite_session_file_path(),
+      "data/custom-session.db"
+    );
+
+    // Test env var loading
+    std::env::set_var(
+      "DPS_AUTH_API_SQLITE_SESSION_FILE_PATH",
+      "data/test-session.db",
+    );
+    let c2 = DpsConfig::new();
+    assert_eq!(
+      c2.get_auth_api_sqlite_session_file_path(),
+      "data/test-session.db"
+    );
+    std::env::remove_var("DPS_AUTH_API_SQLITE_SESSION_FILE_PATH");
   }
 
   #[test]

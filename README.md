@@ -78,6 +78,10 @@ Each property has a getter (`get_<property_name>()`) and a setter (`set_<propert
 | `auth_api_insecure_cookie` | `DPS_AUTH_API_INSECURE_COOKIE` | `false` | Allow insecure cookies (HTTP) |
 | `auth_api_sqlite_main_file_path` | `DPS_AUTH_API_SQLITE_MAIN_FILE_PATH` | `data/main-development.db` | SQLite main database file path |
 | `auth_api_sqlite_main_pool_size` | `DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE` | `1` | SQLite main database connection pool size |
+| `auth_api_sqlite_collection_file_path` | `DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH` | `data/collection-development.db` | SQLite collection database file path |
+| `auth_api_sqlite_collection_pool_size` | `DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE` | `1` | SQLite collection database connection pool size |
+| `auth_api_sqlite_session_file_path` | `DPS_AUTH_API_SQLITE_SESSION_FILE_PATH` | `data/session-development.db` | SQLite session database file path |
+| `auth_api_sqlite_session_pool_size` | `DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE` | `1` | SQLite session database connection pool size |
 | `auth_api_session_secret` | `DPS_AUTH_API_SESSION_SECRET` | none | 32-byte session secret for encryption |
 | `auth_api_session_ttl_seconds` | `DPS_AUTH_API_SESSION_TTL_SECONDS` | `1209600` (14 days) | Session TTL in seconds |
 
@@ -117,6 +121,10 @@ export DPS_AUTH_API_PORT="3000"
 export DPS_AUTH_API_INSECURE_COOKIE="Y"
 export DPS_AUTH_API_SQLITE_MAIN_FILE_PATH="data/main-development.db"
 export DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE="4"
+export DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH="data/collection-development.db"
+export DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE="4"
+export DPS_AUTH_API_SQLITE_SESSION_FILE_PATH="data/session-development.db"
+export DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE="4"
 export DPS_AUTH_API_SESSION_SECRET="dev-secret-key-32-bytes-long!"
 export DPS_AUTH_API_SESSION_TTL_SECONDS="1209600"
 ```
