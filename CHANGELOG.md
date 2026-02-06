@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/dimensionalpocket/dps-config/compare/0.5.0...0.6.0) (2026-02-06)
+
+
+### Features
+
+* add collection and session sqlite configurations ([#18](https://github.com/dimensionalpocket/dps-config/issues/18)) ([8b719ad](https://github.com/dimensionalpocket/dps-config/commit/8b719add5c44a612106595fdc125646eeb38d7ac))
+
 ## [0.5.0](https://github.com/dimensionalpocket/dps-config-rs/compare/0.4.0...0.5.0) (2025-11-26)
 
 
