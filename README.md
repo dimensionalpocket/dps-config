@@ -1,6 +1,6 @@
 # @dimensionalpocket/dps-config
 
-[![Rust Tests](https://github.com/dimensionalpocket/dps-config-rs/actions/workflows/test.yml/badge.svg)](https://github.com/dimensionalpocket/dps-config-rs/actions/workflows/test.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Rust Tests](https://github.com/dimensionalpocket/dps-config/actions/workflows/test.yml/badge.svg)](https://github.com/dimensionalpocket/dps-config/actions/workflows/test.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Configuration management for the [DPS ecosystem](https://github.com/dimensionalpocket/dps-readme).
 
@@ -18,22 +18,30 @@ Key principles:
 
 ## Installation
 
+### Rust
+
 Add it to `Cargo.toml`:
 
 ```toml
 [dependencies]
-dps-config = { git = "https://github.com/dimensionalpocket/dps-config-rs" }
+dps-config = { git = "https://github.com/dimensionalpocket/dps-config" }
 ```
 
 Or add via cargo:
 
 ```bash
-cargo add --git https://github.com/dimensionalpocket/dps-config-rs dps-config
+cargo add --git https://github.com/dimensionalpocket/dps-config dps-config
+```
+
+### Bun
+
+```bash
+bun add @dimensionalpocket/dps-config
 ```
 
 ## Quick Start
 
-Basic usage example:
+### Rust
 
 ```rust
 use dps_config::DpsConfig;
@@ -53,6 +61,29 @@ fn main() {
     let auth_api_url = config.get_auth_api_url();
     println!("Auth API URL: {}", auth_api_url);
 }
+```
+
+### Bun / TypeScript
+
+```typescript
+import { DpsConfig } from "@dimensionalpocket/dps-config";
+
+const config = new DpsConfig();
+
+// defaults
+const domain = config.getDomain();
+const apiPath = config.getApiPath();
+
+// overrides
+config.setDomain("example.com");
+config.setApiPath("v1");
+config.setDevelopmentMode(true);
+
+const authApiUrl = config.getAuthApiUrl();
+console.log(`Auth API URL: ${authApiUrl}`);
+
+// Vite support (loads environment variables with VITE_ prefix)
+const viteConfig = new DpsConfig("VITE_");
 ```
 
 ## Configuration Properties
@@ -164,10 +195,13 @@ mod tests {
 ## Project Structure
 
 ```
-dps-config-rs/
-├── src/          # main library code with DpsConfig
+dps-config/
+├── src/
+│   ├── index.ts  # Bun / TypeScript implementation
+│   └── lib.rs    # Rust implementation
 ├── docs/         # documentation (LLM instructions, plans, drafts, etc.)
-├── Cargo.toml
+├── Cargo.toml    # Rust package manifest
+├── package.json  # Bun package manifest
 └── README.md
 ```
 

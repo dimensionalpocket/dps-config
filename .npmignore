@@ -1,0 +1,19 @@
+# Rust files
+src/*.rs
+Cargo.toml
+Cargo.lock
+target/
+rustfmt.toml
+
+# CI/Config
+.github/
+docs/
+CHANGELOG.md
+.tool-versions
+.release-please-manifest.json
+release-please-config.json
+renovate.json
+
+# LLM stuff
+.roo/
+AGENTS.md

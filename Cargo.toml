@@ -5,7 +5,15 @@ edition = "2021"
 authors = ["Dimensional Pocket"]
 license = "MIT"
 description = "Configuration management for the DPS ecosystem"
-repository = "https://github.com/dimensionalpocket/dps-config-rs"
+repository = "https://github.com/dimensionalpocket/dps-config"
+exclude = [
+    "src/*.ts",
+    "package.json",
+    "bun.lockb",
+    "node_modules/",
+    ".github/",
+    ".npmignore"
+]
 
 [lib]
 name = "dps_config"
