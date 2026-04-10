@@ -65,6 +65,8 @@ fn main() {
 
 ### Bun / TypeScript
 
+Note: The TypeScript constructor requires an environment object as its first argument, unlike the Rust version.
+
 ```typescript
 import { DpsConfig } from "@dimensionalpocket/dps-config";
 
