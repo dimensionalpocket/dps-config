@@ -5,6 +5,29 @@
  * It focuses on optional values, sensible defaults, and environment variable loading.
  */
 export class DpsConfig {
+  /**
+   * List of supported environment variable keys (without prefix).
+   */
+  static readonly ENV_KEYS = [
+    "DPS_PROJECT_NAME",
+    "DPS_DOMAIN",
+    "DPS_API_PATH",
+    "DPS_DEVELOPMENT_MODE",
+    "DPS_AUTH_API_SUBDOMAIN",
+    "DPS_AUTH_API_PORT",
+    "DPS_AUTH_API_PROTOCOL",
+    "DPS_AUTH_API_INSECURE_COOKIE",
+    "DPS_AUTH_API_SQLITE_MAIN_FILE_PATH",
+    "DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE",
+    "DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH",
+    "DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE",
+    "DPS_AUTH_API_SQLITE_SESSION_FILE_PATH",
+    "DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE",
+    "DPS_AUTH_API_SESSION_SECRET",
+    "DPS_AUTH_API_SESSION_TTL_SECONDS",
+  ] as const;
+
+  private env: Record<string, string | undefined>;
   private projectName?: string;
   private domain?: string;
   private apiPath?: string;
@@ -26,9 +49,18 @@ export class DpsConfig {
   /**
    * Create a new DpsConfig instance, loading values from environment variables when present.
    *
+   * @param env Environment variables object (e.g. process.env or import.meta.env).
    * @param envPrefix Optional prefix for environment variables (e.g. "VITE_" for Vite support).
    */
-  constructor(envPrefix: string = "") {
+  constructor(env: Record<string, string | undefined>, envPrefix: string = "") {
+    this.env = {};
+    for (const key of DpsConfig.ENV_KEYS) {
+      const fullKey = envPrefix + key;
+      if (env[fullKey] !== undefined) {
+        this.env[fullKey] = env[fullKey];
+      }
+    }
+
     this.projectName = this.loadEnvString(envPrefix, "DPS_PROJECT_NAME");
     this.domain = this.loadEnvString(envPrefix, "DPS_DOMAIN");
     this.apiPath = this.loadEnvString(envPrefix, "DPS_API_PATH");
@@ -213,17 +245,17 @@ export class DpsConfig {
   // --------------------
 
   private loadEnvString(prefix: string, key: string): string | undefined {
-    const value = process.env[prefix + key];
+    const value = this.env[prefix + key];
     return (value && value.length > 0) ? value : undefined;
   }
 
   private loadEnvBool(prefix: string, key: string): boolean | undefined {
-    const value = process.env[prefix + key];
+    const value = this.env[prefix + key];
     return value === "Y" ? true : (value === undefined ? undefined : false);
   }
 
   private loadEnvNumber(prefix: string, key: string): number | undefined {
-    const value = process.env[prefix + key];
+    const value = this.env[prefix + key];
     if (value === undefined || value.length === 0) {
       return undefined;
     }
