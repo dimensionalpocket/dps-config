@@ -5,6 +5,7 @@
  * It focuses on optional values, sensible defaults, and environment variable loading.
  */
 export class DpsConfig {
+  private projectName?: string;
   private domain?: string;
   private apiPath?: string;
   private developmentMode?: boolean;
@@ -28,6 +29,7 @@ export class DpsConfig {
    * @param envPrefix Optional prefix for environment variables (e.g. "VITE_" for Vite support).
    */
   constructor(envPrefix: string = "") {
+    this.projectName = this.loadEnvString(envPrefix, "DPS_PROJECT_NAME");
     this.domain = this.loadEnvString(envPrefix, "DPS_DOMAIN");
     this.apiPath = this.loadEnvString(envPrefix, "DPS_API_PATH");
     this.developmentMode = this.loadEnvBool(envPrefix, "DPS_DEVELOPMENT_MODE");
@@ -49,6 +51,14 @@ export class DpsConfig {
   // --------------------
   // Global getters/setters
   // --------------------
+
+  getProjectName(): string {
+    return this.projectName ?? "My Project";
+  }
+
+  setProjectName(value: string) {
+    this.projectName = value;
+  }
 
   getDomain(): string {
     return this.domain ?? "dps.localhost";

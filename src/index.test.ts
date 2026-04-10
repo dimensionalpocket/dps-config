@@ -12,6 +12,7 @@ describe("DpsConfig", () => {
 
   it("should have correct default values", () => {
     const config = new DpsConfig();
+    expect(config.getProjectName()).toBe("My Project");
     expect(config.getDomain()).toBe("dps.localhost");
     expect(config.getApiPath()).toBe("api");
     expect(config.getDevelopmentMode()).toBe(false);
@@ -31,12 +32,14 @@ describe("DpsConfig", () => {
 
   it("should work with setters", () => {
     const config = new DpsConfig();
+    config.setProjectName("Custom Project");
     config.setDomain("example.com");
     config.setApiPath("v1");
     config.setDevelopmentMode(true);
     config.setAuthApiPort(3000);
     config.setAuthApiSessionSecret("s3cr3t");
 
+    expect(config.getProjectName()).toBe("Custom Project");
     expect(config.getDomain()).toBe("example.com");
     expect(config.getApiPath()).toBe("v1");
     expect(config.getDevelopmentMode()).toBe(true);
@@ -115,6 +118,12 @@ describe("DpsConfig", () => {
     process.env.DPS_API_PATH = "api/v2";
     const config = new DpsConfig();
     expect(config.getApiPath()).toBe("api/v2");
+  });
+
+  it("should load project name from env", () => {
+    process.env.DPS_PROJECT_NAME = "Env Project";
+    const config = new DpsConfig();
+    expect(config.getProjectName()).toBe("Env Project");
   });
 
   it("should support envPrefix", () => {
