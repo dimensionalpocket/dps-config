@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/dimensionalpocket/dps-config/compare/0.8.0...0.9.0) (2026-04-10)
+
+
+### Features
+
+* update README and refactor TypeScript env loading ([#24](https://github.com/dimensionalpocket/dps-config/issues/24)) ([6fb00e5](https://github.com/dimensionalpocket/dps-config/commit/6fb00e5018571c1627e4913ab11d2e4b3284a361))
+
 ## [0.8.0](https://github.com/dimensionalpocket/dps-config/compare/0.7.0...0.8.0) (2026-04-10)
 
 
