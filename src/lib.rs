@@ -40,6 +40,7 @@ use std::env;
 /// crates should validate values where required.
 pub struct DpsConfig {
   // Global properties
+  project_name: Option<String>,
   domain: Option<String>,
   api_path: Option<String>,
   development_mode: Option<bool>,
@@ -81,6 +82,7 @@ impl DpsConfig {
   /// - `DPS_AUTH_API_SESSION_TTL_SECONDS`
   pub fn new() -> Self {
     Self {
+      project_name: load_env_string("DPS_PROJECT_NAME"),
       domain: load_env_string("DPS_DOMAIN"),
       api_path: load_env_string("DPS_API_PATH"),
       development_mode: load_env_bool("DPS_DEVELOPMENT_MODE"),
@@ -106,6 +108,21 @@ impl DpsConfig {
   // --------------------
   // Global getters/setters
   // --------------------
+
+  /// Returns the configured project name or the default `"My Project"`.
+  ///
+  /// Env var: `DPS_PROJECT_NAME`
+  pub fn get_project_name(&self) -> String {
+    self
+      .project_name
+      .clone()
+      .unwrap_or_else(|| "My Project".to_string())
+  }
+
+  /// Set the project name value (overrides any environment-provided value).
+  pub fn set_project_name(&mut self, value: &str) {
+    self.project_name = Some(value.to_string());
+  }
 
   /// Returns the configured domain or the default `"dps.localhost"`.
   ///
@@ -395,6 +412,7 @@ mod tests {
   #[serial]
   fn test_default_values() {
     let config = DpsConfig::new();
+    assert_eq!(config.get_project_name(), "My Project");
     assert_eq!(config.get_domain(), "dps.localhost");
     assert_eq!(config.get_api_path(), "api");
     assert!(!config.get_development_mode());
@@ -424,12 +442,14 @@ mod tests {
   #[test]
   fn test_setters() {
     let mut config = DpsConfig::new();
+    config.set_project_name("Custom Project");
     config.set_domain("example.com");
     config.set_api_path("v1");
     config.set_development_mode(true);
     config.set_auth_api_port(Some(3000));
     config.set_auth_api_session_secret(Some("s3cr3t"));
 
+    assert_eq!(config.get_project_name(), "Custom Project");
     assert_eq!(config.get_domain(), "example.com");
     assert_eq!(config.get_api_path(), "v1");
     assert!(config.get_development_mode());
@@ -648,6 +668,22 @@ mod tests {
     let c2 = DpsConfig::new();
     assert_eq!(c2.get_auth_api_session_ttl_seconds(), 1800);
     std::env::remove_var("DPS_AUTH_API_SESSION_TTL_SECONDS");
+  }
+
+  #[test]
+  #[serial]
+  fn test_project_name() {
+    // Test default and setter
+    let mut c = DpsConfig::new();
+    assert_eq!(c.get_project_name(), "My Project");
+    c.set_project_name("New Name");
+    assert_eq!(c.get_project_name(), "New Name");
+
+    // Test env var loading
+    std::env::set_var("DPS_PROJECT_NAME", "Env Project");
+    let c2 = DpsConfig::new();
+    assert_eq!(c2.get_project_name(), "Env Project");
+    std::env::remove_var("DPS_PROJECT_NAME");
   }
 
   #[test]
