@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/dimensionalpocket/dps-config/compare/0.7.0...0.8.0) (2026-04-10)
+
+
+### Features
+
+* add project name configuration ([#22](https://github.com/dimensionalpocket/dps-config/issues/22)) ([e1f8277](https://github.com/dimensionalpocket/dps-config/commit/e1f82774f81051cdcab0ac48d520d88f3c2e090d))
+
 ## [0.7.0](https://github.com/dimensionalpocket/dps-config/compare/0.6.0...0.7.0) (2026-02-06)
 
 
