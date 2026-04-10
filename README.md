@@ -65,10 +65,13 @@ fn main() {
 
 ### Bun / TypeScript
 
+Note: The TypeScript constructor requires an environment object as its first argument, unlike the Rust version.
+
 ```typescript
 import { DpsConfig } from "@dimensionalpocket/dps-config";
 
-const config = new DpsConfig();
+// On Bun / Node.js
+const config = new DpsConfig(process.env);
 
 // defaults
 const domain = config.getDomain();
@@ -83,7 +86,7 @@ const authApiUrl = config.getAuthApiUrl();
 console.log(`Auth API URL: ${authApiUrl}`);
 
 // Vite support (loads environment variables with VITE_ prefix)
-const viteConfig = new DpsConfig("VITE_");
+const viteConfig = new DpsConfig(import.meta.env, "VITE_");
 ```
 
 ## Configuration Properties
@@ -95,6 +98,7 @@ Each property has a getter (`get_<property_name>()`) and a setter (`set_<propert
 
 | Property | Environment Variable | Default | Description |
 |----------|----------------------|---------|-------------|
+| `project_name` | `DPS_PROJECT_NAME` | `My Project` | Name of the project |
 | `domain` | `DPS_DOMAIN` | `dps.localhost` | Main domain of the website |
 | `api_path` | `DPS_API_PATH` | `api` | Path (without leading slash) for API endpoints |
 | `development_mode` | `DPS_DEVELOPMENT_MODE` | `false` | Enables development-only features |
