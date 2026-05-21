@@ -38,6 +38,7 @@ use std::env;
 ///
 /// Note: This struct intentionally does not perform validation — consuming
 /// crates should validate values where required.
+#[allow(clippy::type_complexity)]
 pub struct DpsConfig {
   // Global properties
   project_name: Option<String>,
@@ -60,8 +61,8 @@ pub struct DpsConfig {
   auth_api_session_ttl_seconds: Option<u32>,
 
   // Session conversion functions
-  session_sub_to_user_id_fn: Box<dyn Fn(&str) -> i64 + Send + Sync>,
-  session_user_to_sub_fn: Box<dyn Fn(&serde_json::Value) -> String + Send + Sync>,
+  session_sub_to_user_id_fn: Box<dyn Fn(&str) -> anyhow::Result<i64> + Send + Sync>,
+  session_user_to_sub_fn: Box<dyn Fn(&serde_json::Value) -> anyhow::Result<String> + Send + Sync>,
 }
 
 impl DpsConfig {
@@ -106,18 +107,20 @@ impl DpsConfig {
       auth_api_sqlite_session_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE"),
       auth_api_session_secret: load_env_string("DPS_AUTH_API_SESSION_SECRET"),
       auth_api_session_ttl_seconds: load_env_u32("DPS_AUTH_API_SESSION_TTL_SECONDS"),
-      session_sub_to_user_id_fn: Box::new(|sub: &str| sub.parse::<i64>().unwrap_or(0)),
+      session_sub_to_user_id_fn: Box::new(|sub: &str| {
+        sub.parse::<i64>().map_err(anyhow::Error::new)
+      }),
       session_user_to_sub_fn: Box::new(|record: &serde_json::Value| {
         record
           .get("id")
           .and_then(|v| {
             if let Some(n) = v.as_u64() {
-              Some(n.to_string())
+              Some(Ok(n.to_string()))
             } else {
-              v.as_str().map(|s| s.to_string())
+              v.as_str().map(|s| Ok(s.to_string()))
             }
           })
-          .unwrap_or_default()
+          .unwrap_or_else(|| Err(anyhow::anyhow!("missing or invalid 'id' field")))
       }),
     }
   }
@@ -371,27 +374,33 @@ impl DpsConfig {
 
   /// Returns the function that converts a session `sub` string to an `i64` user ID.
   ///
-  /// Default: Parses the string as `i64`, returning `0` on failure.
-  pub fn get_session_sub_to_user_id_fn(&self) -> &dyn Fn(&str) -> i64 {
+  /// Default: Parses the string as `i64`, returning a parse error on failure.
+  pub fn get_session_sub_to_user_id_fn(&self) -> &dyn Fn(&str) -> anyhow::Result<i64> {
     self.session_sub_to_user_id_fn.as_ref()
   }
 
   /// Set the session sub to user ID conversion function.
-  pub fn set_session_sub_to_user_id_fn(&mut self, f: impl Fn(&str) -> i64 + Send + Sync + 'static) {
+  pub fn set_session_sub_to_user_id_fn(
+    &mut self,
+    f: impl Fn(&str) -> anyhow::Result<i64> + Send + Sync + 'static,
+  ) {
     self.session_sub_to_user_id_fn = Box::new(f);
   }
 
   /// Returns the function that extracts a `sub` string from a JSON record.
   ///
-  /// Default: Returns the `id` property of the record as a string.
-  pub fn get_session_user_to_sub_fn(&self) -> &dyn Fn(&serde_json::Value) -> String {
+  /// Default: Returns the `id` property of the record as a string, or an error
+  /// if `id` is missing or invalid.
+  pub fn get_session_user_to_sub_fn(
+    &self,
+  ) -> &dyn Fn(&serde_json::Value) -> anyhow::Result<String> {
     self.session_user_to_sub_fn.as_ref()
   }
 
   /// Set the session user to sub conversion function.
   pub fn set_session_user_to_sub_fn(
     &mut self,
-    f: impl Fn(&serde_json::Value) -> String + Send + Sync + 'static,
+    f: impl Fn(&serde_json::Value) -> anyhow::Result<String> + Send + Sync + 'static,
   ) {
     self.session_user_to_sub_fn = Box::new(f);
   }
@@ -754,15 +763,15 @@ mod tests {
   fn test_session_sub_to_user_id_fn_default() {
     let config = DpsConfig::new();
     let to_user_id = config.get_session_sub_to_user_id_fn();
-    assert_eq!(to_user_id("12345"), 12345);
-    assert_eq!(to_user_id("invalid"), 0);
+    assert_eq!(to_user_id("12345").unwrap(), 12345);
+    assert!(to_user_id("invalid").is_err());
   }
 
   #[test]
   fn test_session_sub_to_user_id_fn_custom() {
     let mut config = DpsConfig::new();
-    config.set_session_sub_to_user_id_fn(|sub| sub.len() as i64);
-    assert_eq!(config.get_session_sub_to_user_id_fn()("hello"), 5);
+    config.set_session_sub_to_user_id_fn(|sub| Ok(sub.len() as i64));
+    assert_eq!(config.get_session_sub_to_user_id_fn()("hello").unwrap(), 5);
   }
 
   #[test]
@@ -770,7 +779,8 @@ mod tests {
     let config = DpsConfig::new();
     let to_sub = config.get_session_user_to_sub_fn();
     let record = serde_json::json!({ "id": 42, "name": "test" });
-    assert_eq!(to_sub(&record), "42");
+    assert_eq!(to_sub(&record).unwrap(), "42");
+    assert!(to_sub(&serde_json::json!({})).is_err());
   }
 
   #[test]
@@ -780,10 +790,13 @@ mod tests {
       record
         .get("sub")
         .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .to_string()
+        .map(|s| s.to_string())
+        .ok_or_else(|| anyhow::anyhow!("missing 'sub'"))
     });
     let record = serde_json::json!({ "sub": "user-123", "name": "test" });
-    assert_eq!(config.get_session_user_to_sub_fn()(&record), "user-123");
+    assert_eq!(
+      config.get_session_user_to_sub_fn()(&record).unwrap(),
+      "user-123"
+    );
   }
 }
