@@ -4,7 +4,7 @@
 
 Add two new function-typed properties to the Rust `DpsConfig` struct:
 
-1. **`session_sub_to_user_id_fn`** — A function that takes a `&str` (session sub) and returns `u64` (user ID). Default: identity function that parses the string as `u64`.
+1. **`session_sub_to_user_id_fn`** — A function that takes a `&str` (session sub) and returns `i64` (user ID). Default: identity function that parses the string as `i64`.
 2. **`session_user_to_sub_fn`** — A function that takes a JSON-like record (`serde_json::Value`) and returns a `String` (the sub). Default: returns the `id` property of the record as a string.
 
 These are Rust-only features. The Bun/TypeScript implementation remains unchanged.
@@ -20,7 +20,7 @@ pub struct DpsConfig {
   // ... existing fields ...
 
   // Session conversion functions
-  session_sub_to_user_id_fn: Box<dyn Fn(&str) -> u64 + Send + Sync>,
+  session_sub_to_user_id_fn: Box<dyn Fn(&str) -> i64 + Send + Sync>,
   session_user_to_sub_fn: Box<dyn Fn(&serde_json::Value) -> String + Send + Sync>,
 }
 ```
@@ -34,7 +34,7 @@ Self {
   // ... existing initializations ...
 
   session_sub_to_user_id_fn: Box::new(|sub: &str| {
-    sub.parse::<u64>().unwrap_or(0)
+    sub.parse::<i64>().unwrap_or(0)
   }),
   session_user_to_sub_fn: Box::new(|record: &serde_json::Value| {
     record
@@ -55,11 +55,11 @@ Self {
 
 ```rust
 // session_sub_to_user_id_fn
-pub fn get_session_sub_to_user_id_fn(&self) -> &dyn Fn(&str) -> u64 {
+pub fn get_session_sub_to_user_id_fn(&self) -> &dyn Fn(&str) -> i64 {
   self.session_sub_to_user_id_fn.as_ref()
 }
 
-pub fn set_session_sub_to_user_id_fn(&mut self, f: impl Fn(&str) -> u64 + Send + Sync + 'static) {
+pub fn set_session_sub_to_user_id_fn(&mut self, f: impl Fn(&str) -> i64 + Send + Sync + 'static) {
   self.session_sub_to_user_id_fn = Box::new(f);
 }
 
@@ -98,7 +98,7 @@ fn test_session_sub_to_user_id_fn_default() {
 fn test_session_sub_to_user_id_fn_custom() {
   let mut config = DpsConfig::new();
   config.set_session_sub_to_user_id_fn(|sub| {
-    sub.len() as u64
+    sub.len() as i64
   });
   assert_eq!(config.get_session_sub_to_user_id_fn()("hello"), 5);
 }
@@ -133,7 +133,7 @@ These properties are only available in the Rust implementation. The Bun/TypeScri
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `session_sub_to_user_id_fn` | Parses string as u64, returns 0 on failure | Function that converts a session `sub` string to a `u64` user ID |
+| `session_sub_to_user_id_fn` | Parses string as i64, returns 0 on failure | Function that converts a session `sub` string to an `i64` user ID |
 | `session_user_to_sub_fn` | Returns `id` property as string | Function that extracts a `sub` string from a JSON record (`serde_json::Value`) |
 
 Example usage:
@@ -141,12 +141,12 @@ Example usage:
 ```rust
 let mut config = DpsConfig::new();
 
-// Use default: parses sub as u64
+// Use default: parses sub as i64
 let to_user_id = config.get_session_sub_to_user_id_fn();
 assert_eq!(to_user_id("42"), 42);
 
 // Custom converter: use length of sub as user ID
-config.set_session_sub_to_user_id_fn(|sub| sub.len() as u64);
+config.set_session_sub_to_user_id_fn(|sub| sub.len() as i64);
 
 // Custom sub extractor from JSON record
 config.set_session_user_to_sub_fn(|record| {
