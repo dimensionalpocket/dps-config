@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/dimensionalpocket/dps-config/compare/0.9.0...0.10.0) (2026-05-21)
+
+
+### Features
+
+* add session conversion functions ([#27](https://github.com/dimensionalpocket/dps-config/issues/27)) ([c180d0c](https://github.com/dimensionalpocket/dps-config/commit/c180d0c4e89fe5d8c28a93b5a504112f0818b59c))
+
 ## [0.9.0](https://github.com/dimensionalpocket/dps-config/compare/0.8.0...0.9.0) (2026-04-10)
 
 
