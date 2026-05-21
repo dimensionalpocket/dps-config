@@ -1,11 +1,23 @@
 # AGENTS.md
 
+## General Instructions
+
+- Be concise and direct.
+- Treat all questions as genuine inquiries for information; don't interpret questions as implying mistakes.
+- Read [README.md](./README.md) for project context.
+
 ## Build/Lint/Test Commands
+
+Rust version:
 
 - **Build**: `cargo build`
 - **Test all**: `cargo test --quiet`
 - **Test single test**: `cargo test <test_name> --verbose`
 - **Linter**: `cargo clippy --allow-dirty --fix && cargo fmt`
+
+Bun version:
+
+- **Test**: `bun test`
 
 ## Working Guidelines
 
