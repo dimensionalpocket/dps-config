@@ -120,6 +120,33 @@ Each property has a getter (`get_<property_name>()`) and a setter (`set_<propert
 | `auth_api_session_secret` | `DPS_AUTH_API_SESSION_SECRET` | none | 32-byte session secret for encryption |
 | `auth_api_session_ttl_seconds` | `DPS_AUTH_API_SESSION_TTL_SECONDS` | `1209600` (14 days) | Session TTL in seconds |
 
+### Session Conversion Functions (Rust only)
+
+These properties are only available in the Rust implementation. The Bun/TypeScript version does not include them.
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `session_sub_to_user_id_fn` | Parses string as u64, returns 0 on failure | Function that converts a session `sub` string to a `u64` user ID |
+| `session_user_to_sub_fn` | Returns `id` property as string | Function that extracts a `sub` string from a JSON record (`serde_json::Value`) |
+
+Example usage:
+
+```rust
+let mut config = DpsConfig::new();
+
+// Use default: parses sub as u64
+let to_user_id = config.get_session_sub_to_user_id_fn();
+assert_eq!(to_user_id("42"), 42);
+
+// Custom converter: use length of sub as user ID
+config.set_session_sub_to_user_id_fn(|sub| sub.len() as u64);
+
+// Custom sub extractor from JSON record
+config.set_session_user_to_sub_fn(|record| {
+    record.get("sub").and_then(|v| v.as_str()).unwrap_or("").to_string()
+});
+```
+
 ## Computed Getters
 
 Computed getters derive values from base properties and have no setters or environment variables.

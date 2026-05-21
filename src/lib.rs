@@ -58,6 +58,10 @@ pub struct DpsConfig {
   auth_api_sqlite_session_pool_size: Option<u16>,
   auth_api_session_secret: Option<String>,
   auth_api_session_ttl_seconds: Option<u32>,
+
+  // Session conversion functions
+  session_sub_to_user_id_fn: Box<dyn Fn(&str) -> u64 + Send + Sync>,
+  session_user_to_sub_fn: Box<dyn Fn(&serde_json::Value) -> String + Send + Sync>,
 }
 
 impl DpsConfig {
@@ -102,6 +106,19 @@ impl DpsConfig {
       auth_api_sqlite_session_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE"),
       auth_api_session_secret: load_env_string("DPS_AUTH_API_SESSION_SECRET"),
       auth_api_session_ttl_seconds: load_env_u32("DPS_AUTH_API_SESSION_TTL_SECONDS"),
+      session_sub_to_user_id_fn: Box::new(|sub: &str| sub.parse::<u64>().unwrap_or(0)),
+      session_user_to_sub_fn: Box::new(|record: &serde_json::Value| {
+        record
+          .get("id")
+          .and_then(|v| {
+            if let Some(n) = v.as_u64() {
+              Some(n.to_string())
+            } else {
+              v.as_str().map(|s| s.to_string())
+            }
+          })
+          .unwrap_or_default()
+      }),
     }
   }
 
@@ -346,6 +363,37 @@ impl DpsConfig {
   /// Set or unset the auth session TTL in seconds.
   pub fn set_auth_api_session_ttl_seconds(&mut self, value: Option<u32>) {
     self.auth_api_session_ttl_seconds = value;
+  }
+
+  // --------------------
+  // Session conversion functions
+  // --------------------
+
+  /// Returns the function that converts a session `sub` string to a `u64` user ID.
+  ///
+  /// Default: Parses the string as `u64`, returning `0` on failure.
+  pub fn get_session_sub_to_user_id_fn(&self) -> &dyn Fn(&str) -> u64 {
+    self.session_sub_to_user_id_fn.as_ref()
+  }
+
+  /// Set the session sub to user ID conversion function.
+  pub fn set_session_sub_to_user_id_fn(&mut self, f: impl Fn(&str) -> u64 + Send + Sync + 'static) {
+    self.session_sub_to_user_id_fn = Box::new(f);
+  }
+
+  /// Returns the function that extracts a `sub` string from a JSON record.
+  ///
+  /// Default: Returns the `id` property of the record as a string.
+  pub fn get_session_user_to_sub_fn(&self) -> &dyn Fn(&serde_json::Value) -> String {
+    self.session_user_to_sub_fn.as_ref()
+  }
+
+  /// Set the session user to sub conversion function.
+  pub fn set_session_user_to_sub_fn(
+    &mut self,
+    f: impl Fn(&serde_json::Value) -> String + Send + Sync + 'static,
+  ) {
+    self.session_user_to_sub_fn = Box::new(f);
   }
 
   // --------------------
@@ -700,5 +748,42 @@ mod tests {
     let c2 = DpsConfig::new();
     assert_eq!(c2.get_api_path(), "api/v2");
     std::env::remove_var("DPS_API_PATH");
+  }
+
+  #[test]
+  fn test_session_sub_to_user_id_fn_default() {
+    let config = DpsConfig::new();
+    let to_user_id = config.get_session_sub_to_user_id_fn();
+    assert_eq!(to_user_id("12345"), 12345);
+    assert_eq!(to_user_id("invalid"), 0);
+  }
+
+  #[test]
+  fn test_session_sub_to_user_id_fn_custom() {
+    let mut config = DpsConfig::new();
+    config.set_session_sub_to_user_id_fn(|sub| sub.len() as u64);
+    assert_eq!(config.get_session_sub_to_user_id_fn()("hello"), 5);
+  }
+
+  #[test]
+  fn test_session_user_to_sub_fn_default() {
+    let config = DpsConfig::new();
+    let to_sub = config.get_session_user_to_sub_fn();
+    let record = serde_json::json!({ "id": 42, "name": "test" });
+    assert_eq!(to_sub(&record), "42");
+  }
+
+  #[test]
+  fn test_session_user_to_sub_fn_custom() {
+    let mut config = DpsConfig::new();
+    config.set_session_user_to_sub_fn(|record| {
+      record
+        .get("sub")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string()
+    });
+    let record = serde_json::json!({ "sub": "user-123", "name": "test" });
+    assert_eq!(config.get_session_user_to_sub_fn()(&record), "user-123");
   }
 }
