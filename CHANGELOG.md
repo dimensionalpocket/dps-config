@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/dimensionalpocket/dps-config/compare/0.10.1...0.10.2) (2026-05-21)
+
+
+### Bug Fixes
+
+* update session conversion functions to return anyhow::Result for error handling ([#31](https://github.com/dimensionalpocket/dps-config/issues/31)) ([d836065](https://github.com/dimensionalpocket/dps-config/commit/d836065433642843b3968fa00d7ef2351857694f))
+
 ## [0.10.1](https://github.com/dimensionalpocket/dps-config/compare/0.10.0...0.10.1) (2026-05-21)
 
 
