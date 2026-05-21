@@ -21,6 +21,7 @@ path = "src/lib.rs"
 crate-type = ["lib"]
 
 [dependencies]
+anyhow = "1"
 serde_json = "1"
 
 [dev-dependencies]

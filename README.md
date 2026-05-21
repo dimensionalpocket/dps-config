@@ -126,8 +126,8 @@ These properties are only available in the Rust implementation. The Bun/TypeScri
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `session_sub_to_user_id_fn` | Parses string as i64, returns 0 on failure | Function that converts a session `sub` string to an `i64` user ID |
-| `session_user_to_sub_fn` | Returns `id` property as string | Function that extracts a `sub` string from a JSON record (`serde_json::Value`) |
+| `session_sub_to_user_id_fn` | Parses string as i64, returns parse error on failure | Function that converts a session `sub` string to an `i64` user ID. Returns `anyhow::Result<i64>`. |
+| `session_user_to_sub_fn` | Returns `id` property as string, error on missing/invalid | Function that extracts a `sub` string from a JSON record (`serde_json::Value`). Returns `anyhow::Result<String>`. |
 
 Example usage:
 
@@ -136,15 +136,33 @@ let mut config = DpsConfig::new();
 
 // Use default: parses sub as i64
 let to_user_id = config.get_session_sub_to_user_id_fn();
-assert_eq!(to_user_id("42"), 42);
+assert_eq!(to_user_id("42").unwrap(), 42);
 
 // Custom converter: use length of sub as user ID
-config.set_session_sub_to_user_id_fn(|sub| sub.len() as i64);
+config.set_session_sub_to_user_id_fn(|sub| Ok(sub.len() as i64));
 
 // Custom sub extractor from JSON record
 config.set_session_user_to_sub_fn(|record| {
-    record.get("sub").and_then(|v| v.as_str()).unwrap_or("").to_string()
+    record.get("sub").and_then(|v| v.as_str()).map(|s| s.to_string()).ok_or_else(|| anyhow::anyhow!("missing 'sub'"))
 });
+```
+
+#### Overriding from a consuming crate
+
+Since the functions return `anyhow::Result<T>`, you can use `anyhow`'s convenience macros for quick error creation.
+
+```rust
+use dps_config::DpsConfig;
+
+fn configure_with_custom_errors(config: &mut DpsConfig) {
+    // Using anyhow::bail!() for convenient error creation
+    config.set_session_sub_to_user_id_fn(|sub| {
+        if sub == "invalid" {
+            anyhow::bail!("user not found: {}", sub);
+        }
+        Ok(42)
+    });
+}
 ```
 
 ## Computed Getters
