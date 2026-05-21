@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/dimensionalpocket/dps-config/compare/0.10.0...0.10.1) (2026-05-21)
+
+
+### Features
+
+* update session_sub_to_user_id_fn to return i64 instead of u64 ([#29](https://github.com/dimensionalpocket/dps-config/issues/29)) ([bfc4cbf](https://github.com/dimensionalpocket/dps-config/commit/bfc4cbf40c467681680987256c173face17773ec))
+
 ## [0.10.0](https://github.com/dimensionalpocket/dps-config/compare/0.9.0...0.10.0) (2026-05-21)
 
 
