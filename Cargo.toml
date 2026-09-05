@@ -25,4 +25,4 @@ anyhow = "1"
 serde_json = "1"
 
 [dev-dependencies]
-serial_test = "3"
+serial_test = "4"
