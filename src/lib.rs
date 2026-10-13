@@ -49,6 +49,7 @@ pub struct DpsConfig {
   // DpsBackend properties
   backend_subdomain: Option<String>,
   backend_port: Option<u16>,
+  backend_bind_port: Option<u16>,
   backend_protocol: Option<String>,
   backend_insecure_cookie: Option<bool>,
   backend_sqlite_main_file_path: Option<String>,
@@ -75,6 +76,7 @@ impl DpsConfig {
   /// - `DPS_DEVELOPMENT_MODE` (use `"Y"` for true)
   /// - `DPS_BACKEND_SUBDOMAIN`
   /// - `DPS_BACKEND_PORT`
+  /// - `DPS_BACKEND_BIND_PORT` (falls back to the generic `PORT`, then `3000`)
   /// - `DPS_BACKEND_PROTOCOL`
   /// - `DPS_BACKEND_INSECURE_COOKIE` (use `"Y"` for true)
   /// - `DPS_BACKEND_SQLITE_MAIN_FILE_PATH`
@@ -93,6 +95,7 @@ impl DpsConfig {
       development_mode: load_env_bool("DPS_DEVELOPMENT_MODE"),
       backend_subdomain: load_env_string("DPS_BACKEND_SUBDOMAIN"),
       backend_port: load_env_u16("DPS_BACKEND_PORT"),
+      backend_bind_port: load_env_u16("DPS_BACKEND_BIND_PORT").or_else(|| load_env_u16("PORT")),
       backend_protocol: load_env_string("DPS_BACKEND_PROTOCOL"),
       backend_insecure_cookie: load_env_bool("DPS_BACKEND_INSECURE_COOKIE"),
       backend_sqlite_main_file_path: load_env_string("DPS_BACKEND_SQLITE_MAIN_FILE_PATH"),
@@ -210,6 +213,24 @@ impl DpsConfig {
   /// Set the backend API port. Use `None` to unset.
   pub fn set_backend_port(&mut self, value: Option<u16>) {
     self.backend_port = value;
+  }
+
+  /// Returns the internal port a server should bind, resolving
+  /// `DPS_BACKEND_BIND_PORT`, then the generic `PORT` environment variable, then
+  /// the default `3000`.
+  ///
+  /// This is the port the process listens on and is intentionally separate from
+  /// [`DpsConfig::get_backend_port`], which is the *public* port appended to
+  /// [`DpsConfig::get_backend_url`] and is usually unset behind a proxy.
+  ///
+  /// Env vars: `DPS_BACKEND_BIND_PORT`, `PORT`
+  pub fn get_backend_bind_port(&self) -> u16 {
+    self.backend_bind_port.unwrap_or(3000)
+  }
+
+  /// Set or unset the internal bind port. Use `None` to reset to the default.
+  pub fn set_backend_bind_port(&mut self, value: Option<u16>) {
+    self.backend_bind_port = value;
   }
 
   /// Returns the backend API protocol or default `"https"`.
@@ -691,6 +712,55 @@ mod tests {
       "data/test-session.db"
     );
     std::env::remove_var("DPS_BACKEND_SQLITE_SESSION_FILE_PATH");
+  }
+
+  #[test]
+  #[serial]
+  fn test_backend_bind_port_default() {
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+    std::env::remove_var("PORT");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_bind_port(), 3000);
+  }
+
+  #[test]
+  #[serial]
+  fn test_backend_bind_port_from_env() {
+    std::env::set_var("DPS_BACKEND_BIND_PORT", "9000");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_bind_port(), 9000);
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+  }
+
+  #[test]
+  #[serial]
+  fn test_backend_bind_port_prefers_dps_over_port() {
+    std::env::set_var("DPS_BACKEND_BIND_PORT", "9000");
+    std::env::set_var("PORT", "8000");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_bind_port(), 9000);
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+    std::env::remove_var("PORT");
+  }
+
+  #[test]
+  #[serial]
+  fn test_backend_bind_port_falls_back_to_port() {
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+    std::env::set_var("PORT", "8000");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_bind_port(), 8000);
+    std::env::remove_var("PORT");
+  }
+
+  #[test]
+  #[serial]
+  fn test_backend_bind_port_does_not_affect_url() {
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+    std::env::set_var("PORT", "8000");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_url(), "https://auth.dps.localhost/api");
+    std::env::remove_var("PORT");
   }
 
   #[test]

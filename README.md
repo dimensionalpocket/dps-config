@@ -108,7 +108,8 @@ Each property has a getter (`get_<property_name>()`) and a setter (`set_<propert
 | Property | Environment Variable | Default | Description |
 |----------|----------------------|---------|-------------|
 | `backend_subdomain` | `DPS_BACKEND_SUBDOMAIN` | `auth` | Sub-subdomain for DpsBackend |
-| `backend_port` | `DPS_BACKEND_PORT` | none | Port for DpsBackend (omitted from URL if unset) |
+| `backend_port` | `DPS_BACKEND_PORT` | none | **Public** port appended to the backend URL (omitted if unset) |
+| `backend_bind_port` | `DPS_BACKEND_BIND_PORT` (falls back to `PORT`) | `3000` | Internal port the server binds (never used in URLs) |
 | `backend_protocol` | `DPS_BACKEND_PROTOCOL` | `https` | Protocol for DpsBackend |
 | `backend_insecure_cookie` | `DPS_BACKEND_INSECURE_COOKIE` | `false` | Allow insecure cookies (HTTP) |
 | `backend_sqlite_main_file_path` | `DPS_BACKEND_SQLITE_MAIN_FILE_PATH` | `data/main-development.db` | SQLite main database file path |
@@ -119,6 +120,11 @@ Each property has a getter (`get_<property_name>()`) and a setter (`set_<propert
 | `backend_sqlite_session_pool_size` | `DPS_BACKEND_SQLITE_SESSION_POOL_SIZE` | `1` | SQLite session database connection pool size |
 | `backend_session_secret` | `DPS_BACKEND_SESSION_SECRET` | none | 32-byte session secret for encryption |
 | `backend_session_ttl_seconds` | `DPS_BACKEND_SESSION_TTL_SECONDS` | `1209600` (14 days) | Session TTL in seconds |
+
+> `backend_port` is the **public** port used when building URLs. `backend_bind_port` is the
+> **internal** port the process listens on, resolved from `DPS_BACKEND_BIND_PORT`, then the generic
+> `PORT` environment variable (e.g. injected by a platform like Railway), then `3000`. The two are
+> independent: behind a proxy, `DPS_BACKEND_PORT` is typically unset while `PORT` is set.
 
 ### Session Conversion Functions (Rust only)
 
@@ -198,6 +204,9 @@ export DPS_API_PATH="api"
 export DPS_DEVELOPMENT_MODE="Y"
 export DPS_BACKEND_PROTOCOL="http"
 export DPS_BACKEND_PORT="3000"
+export DPS_BACKEND_BIND_PORT="3000"
+# or, on a platform that injects it:
+export PORT="8000"
 export DPS_BACKEND_INSECURE_COOKIE="Y"
 export DPS_BACKEND_SQLITE_MAIN_FILE_PATH="data/main-development.db"
 export DPS_BACKEND_SQLITE_MAIN_POOL_SIZE="4"

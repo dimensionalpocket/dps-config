@@ -15,6 +15,8 @@ export class DpsConfig {
     "DPS_DEVELOPMENT_MODE",
     "DPS_BACKEND_SUBDOMAIN",
     "DPS_BACKEND_PORT",
+    "DPS_BACKEND_BIND_PORT",
+    "PORT",
     "DPS_BACKEND_PROTOCOL",
     "DPS_BACKEND_INSECURE_COOKIE",
     "DPS_BACKEND_SQLITE_MAIN_FILE_PATH",
@@ -35,6 +37,7 @@ export class DpsConfig {
 
   private backendSubdomain?: string;
   private backendPort?: number;
+  private backendBindPort?: number;
   private backendProtocol?: string;
   private backendInsecureCookie?: boolean;
   private backendSqliteMainFilePath?: string;
@@ -68,6 +71,9 @@ export class DpsConfig {
 
     this.backendSubdomain = this.loadEnvString(envPrefix, "DPS_BACKEND_SUBDOMAIN");
     this.backendPort = this.loadEnvNumber(envPrefix, "DPS_BACKEND_PORT");
+    this.backendBindPort =
+      this.loadEnvNumber(envPrefix, "DPS_BACKEND_BIND_PORT") ??
+      this.loadEnvNumber(envPrefix, "PORT");
     this.backendProtocol = this.loadEnvString(envPrefix, "DPS_BACKEND_PROTOCOL");
     this.backendInsecureCookie = this.loadEnvBool(envPrefix, "DPS_BACKEND_INSECURE_COOKIE");
     this.backendSqliteMainFilePath = this.loadEnvString(envPrefix, "DPS_BACKEND_SQLITE_MAIN_FILE_PATH");
@@ -134,6 +140,19 @@ export class DpsConfig {
 
   setBackendPort(value: number | undefined) {
     this.backendPort = value;
+  }
+
+  /**
+   * Returns the internal port a server should bind, resolving
+   * `DPS_BACKEND_BIND_PORT`, then the generic `PORT` environment variable, then
+   * the default `3000`. Distinct from `getBackendPort()` (public URL port).
+   */
+  getBackendBindPort(): number {
+    return this.backendBindPort ?? 3000;
+  }
+
+  setBackendBindPort(value: number | undefined) {
+    this.backendBindPort = value;
   }
 
   getBackendProtocol(): string {

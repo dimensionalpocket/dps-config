@@ -128,6 +128,31 @@ describe("DpsConfig", () => {
     expect(standardConfig.getDomain()).toBe("standard.local");
   });
 
+  it("should default bind port to 3000", () => {
+    const config = new DpsConfig({});
+    expect(config.getBackendBindPort()).toBe(3000);
+  });
+
+  it("should load bind port from DPS_BACKEND_BIND_PORT", () => {
+    const config = new DpsConfig({ DPS_BACKEND_BIND_PORT: "9000" });
+    expect(config.getBackendBindPort()).toBe(9000);
+  });
+
+  it("should prefer DPS_BACKEND_BIND_PORT over PORT", () => {
+    const config = new DpsConfig({ DPS_BACKEND_BIND_PORT: "9000", PORT: "8000" });
+    expect(config.getBackendBindPort()).toBe(9000);
+  });
+
+  it("should fall back to PORT for the bind port", () => {
+    const config = new DpsConfig({ PORT: "8000" });
+    expect(config.getBackendBindPort()).toBe(8000);
+  });
+
+  it("should not include the bind port in the backend URL", () => {
+    const config = new DpsConfig({ PORT: "8000" });
+    expect(config.getBackendUrl()).toBe("https://auth.dps.localhost/api");
+  });
+
   it("should only store known environment variables", () => {
     const env = {
       DPS_DOMAIN: "example.com",
