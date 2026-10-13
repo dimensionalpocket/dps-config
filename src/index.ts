@@ -13,18 +13,20 @@ export class DpsConfig {
     "DPS_DOMAIN",
     "DPS_API_PATH",
     "DPS_DEVELOPMENT_MODE",
-    "DPS_AUTH_API_SUBDOMAIN",
-    "DPS_AUTH_API_PORT",
-    "DPS_AUTH_API_PROTOCOL",
-    "DPS_AUTH_API_INSECURE_COOKIE",
-    "DPS_AUTH_API_SQLITE_MAIN_FILE_PATH",
-    "DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE",
-    "DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH",
-    "DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE",
-    "DPS_AUTH_API_SQLITE_SESSION_FILE_PATH",
-    "DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE",
-    "DPS_AUTH_API_SESSION_SECRET",
-    "DPS_AUTH_API_SESSION_TTL_SECONDS",
+    "DPS_BACKEND_SUBDOMAIN",
+    "DPS_BACKEND_PORT",
+    "DPS_BACKEND_BIND_PORT",
+    "PORT",
+    "DPS_BACKEND_PROTOCOL",
+    "DPS_BACKEND_INSECURE_COOKIE",
+    "DPS_BACKEND_SQLITE_MAIN_FILE_PATH",
+    "DPS_BACKEND_SQLITE_MAIN_POOL_SIZE",
+    "DPS_BACKEND_SQLITE_COLLECTION_FILE_PATH",
+    "DPS_BACKEND_SQLITE_COLLECTION_POOL_SIZE",
+    "DPS_BACKEND_SQLITE_SESSION_FILE_PATH",
+    "DPS_BACKEND_SQLITE_SESSION_POOL_SIZE",
+    "DPS_BACKEND_SESSION_SECRET",
+    "DPS_BACKEND_SESSION_TTL_SECONDS",
   ] as const;
 
   private env: Record<string, string | undefined>;
@@ -33,18 +35,19 @@ export class DpsConfig {
   private apiPath?: string;
   private developmentMode?: boolean;
 
-  private authApiSubdomain?: string;
-  private authApiPort?: number;
-  private authApiProtocol?: string;
-  private authApiInsecureCookie?: boolean;
-  private authApiSqliteMainFilePath?: string;
-  private authApiSqliteMainPoolSize?: number;
-  private authApiSqliteCollectionFilePath?: string;
-  private authApiSqliteCollectionPoolSize?: number;
-  private authApiSqliteSessionFilePath?: string;
-  private authApiSqliteSessionPoolSize?: number;
-  private authApiSessionSecret?: string;
-  private authApiSessionTtlSeconds?: number;
+  private backendSubdomain?: string;
+  private backendPort?: number;
+  private backendBindPort?: number;
+  private backendProtocol?: string;
+  private backendInsecureCookie?: boolean;
+  private backendSqliteMainFilePath?: string;
+  private backendSqliteMainPoolSize?: number;
+  private backendSqliteCollectionFilePath?: string;
+  private backendSqliteCollectionPoolSize?: number;
+  private backendSqliteSessionFilePath?: string;
+  private backendSqliteSessionPoolSize?: number;
+  private backendSessionSecret?: string;
+  private backendSessionTtlSeconds?: number;
 
   /**
    * Create a new DpsConfig instance, loading values from environment variables when present.
@@ -66,18 +69,21 @@ export class DpsConfig {
     this.apiPath = this.loadEnvString(envPrefix, "DPS_API_PATH");
     this.developmentMode = this.loadEnvBool(envPrefix, "DPS_DEVELOPMENT_MODE");
 
-    this.authApiSubdomain = this.loadEnvString(envPrefix, "DPS_AUTH_API_SUBDOMAIN");
-    this.authApiPort = this.loadEnvNumber(envPrefix, "DPS_AUTH_API_PORT");
-    this.authApiProtocol = this.loadEnvString(envPrefix, "DPS_AUTH_API_PROTOCOL");
-    this.authApiInsecureCookie = this.loadEnvBool(envPrefix, "DPS_AUTH_API_INSECURE_COOKIE");
-    this.authApiSqliteMainFilePath = this.loadEnvString(envPrefix, "DPS_AUTH_API_SQLITE_MAIN_FILE_PATH");
-    this.authApiSqliteMainPoolSize = this.loadEnvNumber(envPrefix, "DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE");
-    this.authApiSqliteCollectionFilePath = this.loadEnvString(envPrefix, "DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH");
-    this.authApiSqliteCollectionPoolSize = this.loadEnvNumber(envPrefix, "DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE");
-    this.authApiSqliteSessionFilePath = this.loadEnvString(envPrefix, "DPS_AUTH_API_SQLITE_SESSION_FILE_PATH");
-    this.authApiSqliteSessionPoolSize = this.loadEnvNumber(envPrefix, "DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE");
-    this.authApiSessionSecret = this.loadEnvString(envPrefix, "DPS_AUTH_API_SESSION_SECRET");
-    this.authApiSessionTtlSeconds = this.loadEnvNumber(envPrefix, "DPS_AUTH_API_SESSION_TTL_SECONDS");
+    this.backendSubdomain = this.loadEnvString(envPrefix, "DPS_BACKEND_SUBDOMAIN");
+    this.backendPort = this.loadEnvNumber(envPrefix, "DPS_BACKEND_PORT");
+    this.backendBindPort =
+      this.loadEnvNumber(envPrefix, "DPS_BACKEND_BIND_PORT") ??
+      this.loadEnvNumber(envPrefix, "PORT");
+    this.backendProtocol = this.loadEnvString(envPrefix, "DPS_BACKEND_PROTOCOL");
+    this.backendInsecureCookie = this.loadEnvBool(envPrefix, "DPS_BACKEND_INSECURE_COOKIE");
+    this.backendSqliteMainFilePath = this.loadEnvString(envPrefix, "DPS_BACKEND_SQLITE_MAIN_FILE_PATH");
+    this.backendSqliteMainPoolSize = this.loadEnvNumber(envPrefix, "DPS_BACKEND_SQLITE_MAIN_POOL_SIZE");
+    this.backendSqliteCollectionFilePath = this.loadEnvString(envPrefix, "DPS_BACKEND_SQLITE_COLLECTION_FILE_PATH");
+    this.backendSqliteCollectionPoolSize = this.loadEnvNumber(envPrefix, "DPS_BACKEND_SQLITE_COLLECTION_POOL_SIZE");
+    this.backendSqliteSessionFilePath = this.loadEnvString(envPrefix, "DPS_BACKEND_SQLITE_SESSION_FILE_PATH");
+    this.backendSqliteSessionPoolSize = this.loadEnvNumber(envPrefix, "DPS_BACKEND_SQLITE_SESSION_POOL_SIZE");
+    this.backendSessionSecret = this.loadEnvString(envPrefix, "DPS_BACKEND_SESSION_SECRET");
+    this.backendSessionTtlSeconds = this.loadEnvNumber(envPrefix, "DPS_BACKEND_SESSION_TTL_SECONDS");
   }
 
   // --------------------
@@ -117,127 +123,140 @@ export class DpsConfig {
   }
 
   // --------------------
-  // DpsAuthApi getters/setters
+  // DpsBackend getters/setters
   // --------------------
 
-  getAuthApiSubdomain(): string {
-    return this.authApiSubdomain ?? "auth";
+  getBackendSubdomain(): string {
+    return this.backendSubdomain ?? "auth";
   }
 
-  setAuthApiSubdomain(value: string) {
-    this.authApiSubdomain = value;
+  setBackendSubdomain(value: string) {
+    this.backendSubdomain = value;
   }
 
-  getAuthApiPort(): number | undefined {
-    return this.authApiPort;
+  getBackendPort(): number | undefined {
+    return this.backendPort;
   }
 
-  setAuthApiPort(value: number | undefined) {
-    this.authApiPort = value;
-  }
-
-  getAuthApiProtocol(): string {
-    return this.authApiProtocol ?? "https";
-  }
-
-  setAuthApiProtocol(value: string) {
-    this.authApiProtocol = value;
-  }
-
-  getAuthApiInsecureCookie(): boolean {
-    return this.authApiInsecureCookie ?? false;
-  }
-
-  setAuthApiInsecureCookie(value: boolean) {
-    this.authApiInsecureCookie = value;
-  }
-
-  getAuthApiSqliteMainFilePath(): string {
-    return this.authApiSqliteMainFilePath ?? "data/main-development.db";
-  }
-
-  setAuthApiSqliteMainFilePath(value: string) {
-    this.authApiSqliteMainFilePath = value;
-  }
-
-  getAuthApiSqliteMainPoolSize(): number {
-    return this.authApiSqliteMainPoolSize ?? 1;
-  }
-
-  setAuthApiSqliteMainPoolSize(value: number | undefined) {
-    this.authApiSqliteMainPoolSize = value;
-  }
-
-  getAuthApiSqliteCollectionFilePath(): string {
-    return this.authApiSqliteCollectionFilePath ?? "data/collection-development.db";
-  }
-
-  setAuthApiSqliteCollectionFilePath(value: string) {
-    this.authApiSqliteCollectionFilePath = value;
-  }
-
-  getAuthApiSqliteCollectionPoolSize(): number {
-    return this.authApiSqliteCollectionPoolSize ?? 1;
-  }
-
-  setAuthApiSqliteCollectionPoolSize(value: number | undefined) {
-    this.authApiSqliteCollectionPoolSize = value;
-  }
-
-  getAuthApiSqliteSessionFilePath(): string {
-    return this.authApiSqliteSessionFilePath ?? "data/session-development.db";
-  }
-
-  setAuthApiSqliteSessionFilePath(value: string) {
-    this.authApiSqliteSessionFilePath = value;
-  }
-
-  getAuthApiSqliteSessionPoolSize(): number {
-    return this.authApiSqliteSessionPoolSize ?? 1;
-  }
-
-  setAuthApiSqliteSessionPoolSize(value: number | undefined) {
-    this.authApiSqliteSessionPoolSize = value;
-  }
-
-  getAuthApiSessionSecret(): string | undefined {
-    return this.authApiSessionSecret;
-  }
-
-  setAuthApiSessionSecret(value: string | undefined) {
-    this.authApiSessionSecret = value;
+  setBackendPort(value: number | undefined) {
+    this.backendPort = value;
   }
 
   /**
-   * Returns the auth API session secret as bytes (Uint8Array), if configured.
+   * Returns the internal port a server should bind, resolving
+   * `DPS_BACKEND_BIND_PORT`, then the generic `PORT` environment variable, then
+   * the default `3000`. Distinct from `getBackendPort()` (public URL port).
    */
-  getAuthApiSessionSecretBytes(): Uint8Array | undefined {
-    if (this.authApiSessionSecret === undefined) {
+  getBackendBindPort(): number {
+    return this.backendBindPort ?? 3000;
+  }
+
+  setBackendBindPort(value: number | undefined) {
+    this.backendBindPort = value;
+  }
+
+  getBackendProtocol(): string {
+    return this.backendProtocol ?? "https";
+  }
+
+  setBackendProtocol(value: string) {
+    this.backendProtocol = value;
+  }
+
+  getBackendInsecureCookie(): boolean {
+    return this.backendInsecureCookie ?? false;
+  }
+
+  setBackendInsecureCookie(value: boolean) {
+    this.backendInsecureCookie = value;
+  }
+
+  getBackendSqliteMainFilePath(): string {
+    return this.backendSqliteMainFilePath ?? "data/main-development.db";
+  }
+
+  setBackendSqliteMainFilePath(value: string) {
+    this.backendSqliteMainFilePath = value;
+  }
+
+  getBackendSqliteMainPoolSize(): number {
+    return this.backendSqliteMainPoolSize ?? 1;
+  }
+
+  setBackendSqliteMainPoolSize(value: number | undefined) {
+    this.backendSqliteMainPoolSize = value;
+  }
+
+  getBackendSqliteCollectionFilePath(): string {
+    return this.backendSqliteCollectionFilePath ?? "data/collection-development.db";
+  }
+
+  setBackendSqliteCollectionFilePath(value: string) {
+    this.backendSqliteCollectionFilePath = value;
+  }
+
+  getBackendSqliteCollectionPoolSize(): number {
+    return this.backendSqliteCollectionPoolSize ?? 1;
+  }
+
+  setBackendSqliteCollectionPoolSize(value: number | undefined) {
+    this.backendSqliteCollectionPoolSize = value;
+  }
+
+  getBackendSqliteSessionFilePath(): string {
+    return this.backendSqliteSessionFilePath ?? "data/session-development.db";
+  }
+
+  setBackendSqliteSessionFilePath(value: string) {
+    this.backendSqliteSessionFilePath = value;
+  }
+
+  getBackendSqliteSessionPoolSize(): number {
+    return this.backendSqliteSessionPoolSize ?? 1;
+  }
+
+  setBackendSqliteSessionPoolSize(value: number | undefined) {
+    this.backendSqliteSessionPoolSize = value;
+  }
+
+  getBackendSessionSecret(): string | undefined {
+    return this.backendSessionSecret;
+  }
+
+  setBackendSessionSecret(value: string | undefined) {
+    this.backendSessionSecret = value;
+  }
+
+  /**
+   * Returns the backend session secret as bytes (Uint8Array), if configured.
+   */
+  getBackendSessionSecretBytes(): Uint8Array | undefined {
+    if (this.backendSessionSecret === undefined) {
       return undefined;
     }
-    return new TextEncoder().encode(this.authApiSessionSecret);
+    return new TextEncoder().encode(this.backendSessionSecret);
   }
 
-  getAuthApiSessionTtlSeconds(): number {
-    return this.authApiSessionTtlSeconds ?? 1209600;
+  getBackendSessionTtlSeconds(): number {
+    return this.backendSessionTtlSeconds ?? 1209600;
   }
 
-  setAuthApiSessionTtlSeconds(value: number | undefined) {
-    this.authApiSessionTtlSeconds = value;
+  setBackendSessionTtlSeconds(value: number | undefined) {
+    this.backendSessionTtlSeconds = value;
   }
 
   // --------------------
   // Computed getters
   // --------------------
 
-  getAuthApiUrl(): string {
-    const protocol = this.getAuthApiProtocol();
-    const authSub = this.getAuthApiSubdomain();
+  getBackendUrl(): string {
+    const protocol = this.getBackendProtocol();
+    const backendSub = this.getBackendSubdomain();
     const domain = this.getDomain();
     const apiPath = this.getApiPath();
-    const port = this.getAuthApiPort();
+    const port = this.getBackendPort();
     const portString = port ? `:${port}` : "";
-    return `${protocol}://${authSub}.${domain}${portString}/${apiPath}`;
+    return `${protocol}://${backendSub}.${domain}${portString}/${apiPath}`;
   }
 
   // --------------------

@@ -25,7 +25,7 @@
 //! // override and compute
 //! config.set_domain("example.com");
 //! config.set_api_path("api");
-//! assert_eq!(config.get_auth_api_url(), "https://auth.example.com/api");
+//! assert_eq!(config.get_backend_url(), "https://auth.example.com/api");
 //! ```
 
 use std::env;
@@ -46,19 +46,20 @@ pub struct DpsConfig {
   api_path: Option<String>,
   development_mode: Option<bool>,
 
-  // DpsAuthApi properties
-  auth_api_subdomain: Option<String>,
-  auth_api_port: Option<u16>,
-  auth_api_protocol: Option<String>,
-  auth_api_insecure_cookie: Option<bool>,
-  auth_api_sqlite_main_file_path: Option<String>,
-  auth_api_sqlite_main_pool_size: Option<u16>,
-  auth_api_sqlite_collection_file_path: Option<String>,
-  auth_api_sqlite_collection_pool_size: Option<u16>,
-  auth_api_sqlite_session_file_path: Option<String>,
-  auth_api_sqlite_session_pool_size: Option<u16>,
-  auth_api_session_secret: Option<String>,
-  auth_api_session_ttl_seconds: Option<u32>,
+  // DpsBackend properties
+  backend_subdomain: Option<String>,
+  backend_port: Option<u16>,
+  backend_bind_port: Option<u16>,
+  backend_protocol: Option<String>,
+  backend_insecure_cookie: Option<bool>,
+  backend_sqlite_main_file_path: Option<String>,
+  backend_sqlite_main_pool_size: Option<u16>,
+  backend_sqlite_collection_file_path: Option<String>,
+  backend_sqlite_collection_pool_size: Option<u16>,
+  backend_sqlite_session_file_path: Option<String>,
+  backend_sqlite_session_pool_size: Option<u16>,
+  backend_session_secret: Option<String>,
+  backend_session_ttl_seconds: Option<u32>,
 
   // Session conversion functions
   session_sub_to_user_id_fn: Box<dyn Fn(&str) -> anyhow::Result<i64> + Send + Sync>,
@@ -73,40 +74,40 @@ impl DpsConfig {
   /// - `DPS_DOMAIN`
   /// - `DPS_API_PATH`
   /// - `DPS_DEVELOPMENT_MODE` (use `"Y"` for true)
-  /// - `DPS_AUTH_API_SUBDOMAIN`
-  /// - `DPS_AUTH_API_PORT`
-  /// - `DPS_AUTH_API_PROTOCOL`
-  /// - `DPS_AUTH_API_INSECURE_COOKIE` (use `"Y"` for true)
-  /// - `DPS_AUTH_API_SQLITE_MAIN_FILE_PATH`
-  /// - `DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE`
-  /// - `DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH`
-  /// - `DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE`
-  /// - `DPS_AUTH_API_SQLITE_SESSION_FILE_PATH`
-  /// - `DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE`
-  /// - `DPS_AUTH_API_SESSION_SECRET`
-  /// - `DPS_AUTH_API_SESSION_TTL_SECONDS`
+  /// - `DPS_BACKEND_SUBDOMAIN`
+  /// - `DPS_BACKEND_PORT`
+  /// - `DPS_BACKEND_BIND_PORT` (falls back to the generic `PORT`, then `3000`)
+  /// - `DPS_BACKEND_PROTOCOL`
+  /// - `DPS_BACKEND_INSECURE_COOKIE` (use `"Y"` for true)
+  /// - `DPS_BACKEND_SQLITE_MAIN_FILE_PATH`
+  /// - `DPS_BACKEND_SQLITE_MAIN_POOL_SIZE`
+  /// - `DPS_BACKEND_SQLITE_COLLECTION_FILE_PATH`
+  /// - `DPS_BACKEND_SQLITE_COLLECTION_POOL_SIZE`
+  /// - `DPS_BACKEND_SQLITE_SESSION_FILE_PATH`
+  /// - `DPS_BACKEND_SQLITE_SESSION_POOL_SIZE`
+  /// - `DPS_BACKEND_SESSION_SECRET`
+  /// - `DPS_BACKEND_SESSION_TTL_SECONDS`
   pub fn new() -> Self {
     Self {
       project_name: load_env_string("DPS_PROJECT_NAME"),
       domain: load_env_string("DPS_DOMAIN"),
       api_path: load_env_string("DPS_API_PATH"),
       development_mode: load_env_bool("DPS_DEVELOPMENT_MODE"),
-      auth_api_subdomain: load_env_string("DPS_AUTH_API_SUBDOMAIN"),
-      auth_api_port: load_env_u16("DPS_AUTH_API_PORT"),
-      auth_api_protocol: load_env_string("DPS_AUTH_API_PROTOCOL"),
-      auth_api_insecure_cookie: load_env_bool("DPS_AUTH_API_INSECURE_COOKIE"),
-      auth_api_sqlite_main_file_path: load_env_string("DPS_AUTH_API_SQLITE_MAIN_FILE_PATH"),
-      auth_api_sqlite_main_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE"),
-      auth_api_sqlite_collection_file_path: load_env_string(
-        "DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH",
+      backend_subdomain: load_env_string("DPS_BACKEND_SUBDOMAIN"),
+      backend_port: load_env_u16("DPS_BACKEND_PORT"),
+      backend_bind_port: load_env_u16("DPS_BACKEND_BIND_PORT").or_else(|| load_env_u16("PORT")),
+      backend_protocol: load_env_string("DPS_BACKEND_PROTOCOL"),
+      backend_insecure_cookie: load_env_bool("DPS_BACKEND_INSECURE_COOKIE"),
+      backend_sqlite_main_file_path: load_env_string("DPS_BACKEND_SQLITE_MAIN_FILE_PATH"),
+      backend_sqlite_main_pool_size: load_env_u16("DPS_BACKEND_SQLITE_MAIN_POOL_SIZE"),
+      backend_sqlite_collection_file_path: load_env_string(
+        "DPS_BACKEND_SQLITE_COLLECTION_FILE_PATH",
       ),
-      auth_api_sqlite_collection_pool_size: load_env_u16(
-        "DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE",
-      ),
-      auth_api_sqlite_session_file_path: load_env_string("DPS_AUTH_API_SQLITE_SESSION_FILE_PATH"),
-      auth_api_sqlite_session_pool_size: load_env_u16("DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE"),
-      auth_api_session_secret: load_env_string("DPS_AUTH_API_SESSION_SECRET"),
-      auth_api_session_ttl_seconds: load_env_u32("DPS_AUTH_API_SESSION_TTL_SECONDS"),
+      backend_sqlite_collection_pool_size: load_env_u16("DPS_BACKEND_SQLITE_COLLECTION_POOL_SIZE"),
+      backend_sqlite_session_file_path: load_env_string("DPS_BACKEND_SQLITE_SESSION_FILE_PATH"),
+      backend_sqlite_session_pool_size: load_env_u16("DPS_BACKEND_SQLITE_SESSION_POOL_SIZE"),
+      backend_session_secret: load_env_string("DPS_BACKEND_SESSION_SECRET"),
+      backend_session_ttl_seconds: load_env_u32("DPS_BACKEND_SESSION_TTL_SECONDS"),
       session_sub_to_user_id_fn: Box::new(|sub: &str| {
         sub.parse::<i64>().map_err(anyhow::Error::new)
       }),
@@ -184,188 +185,206 @@ impl DpsConfig {
   }
 
   // --------------------
-  // DpsAuthApi getters/setters
+  // DpsBackend getters/setters
   // --------------------
 
-  /// Returns the auth API subdomain or default `"auth"`.
+  /// Returns the backend API subdomain or default `"auth"`.
   ///
-  /// Env var: `DPS_AUTH_API_SUBDOMAIN`
-  pub fn get_auth_api_subdomain(&self) -> String {
+  /// Env var: `DPS_BACKEND_SUBDOMAIN`
+  pub fn get_backend_subdomain(&self) -> String {
     self
-      .auth_api_subdomain
+      .backend_subdomain
       .clone()
       .unwrap_or_else(|| "auth".to_string())
   }
 
-  /// Set the auth API subdomain.
-  pub fn set_auth_api_subdomain(&mut self, value: &str) {
-    self.auth_api_subdomain = Some(value.to_string());
+  /// Set the backend API subdomain.
+  pub fn set_backend_subdomain(&mut self, value: &str) {
+    self.backend_subdomain = Some(value.to_string());
   }
 
-  /// Returns the configured auth API port, if any.
+  /// Returns the configured backend API port, if any.
   ///
-  /// Env var: `DPS_AUTH_API_PORT`
-  pub fn get_auth_api_port(&self) -> Option<u16> {
-    self.auth_api_port
+  /// Env var: `DPS_BACKEND_PORT`
+  pub fn get_backend_port(&self) -> Option<u16> {
+    self.backend_port
   }
 
-  /// Set the auth API port. Use `None` to unset.
-  pub fn set_auth_api_port(&mut self, value: Option<u16>) {
-    self.auth_api_port = value;
+  /// Set the backend API port. Use `None` to unset.
+  pub fn set_backend_port(&mut self, value: Option<u16>) {
+    self.backend_port = value;
   }
 
-  /// Returns the auth API protocol or default `"https"`.
+  /// Returns the internal port a server should bind, resolving
+  /// `DPS_BACKEND_BIND_PORT`, then the generic `PORT` environment variable, then
+  /// the default `3000`.
   ///
-  /// Env var: `DPS_AUTH_API_PROTOCOL`
-  pub fn get_auth_api_protocol(&self) -> String {
+  /// This is the port the process listens on and is intentionally separate from
+  /// [`DpsConfig::get_backend_port`], which is the *public* port appended to
+  /// [`DpsConfig::get_backend_url`] and is usually unset behind a proxy.
+  ///
+  /// Env vars: `DPS_BACKEND_BIND_PORT`, `PORT`
+  pub fn get_backend_bind_port(&self) -> u16 {
+    self.backend_bind_port.unwrap_or(3000)
+  }
+
+  /// Set or unset the internal bind port. Use `None` to reset to the default.
+  pub fn set_backend_bind_port(&mut self, value: Option<u16>) {
+    self.backend_bind_port = value;
+  }
+
+  /// Returns the backend API protocol or default `"https"`.
+  ///
+  /// Env var: `DPS_BACKEND_PROTOCOL`
+  pub fn get_backend_protocol(&self) -> String {
     self
-      .auth_api_protocol
+      .backend_protocol
       .clone()
       .unwrap_or_else(|| "https".to_string())
   }
 
-  /// Set the auth API protocol (e.g. "http" or "https").
-  pub fn set_auth_api_protocol(&mut self, value: &str) {
-    self.auth_api_protocol = Some(value.to_string());
+  /// Set the backend API protocol (e.g. "http" or "https").
+  pub fn set_backend_protocol(&mut self, value: &str) {
+    self.backend_protocol = Some(value.to_string());
   }
 
-  /// Returns whether insecure cookies are enabled for Auth API.
+  /// Returns whether insecure cookies are enabled for Backend API.
   /// Defaults to `false`.
   ///
-  /// Env var: `DPS_AUTH_API_INSECURE_COOKIE` using `"Y"` for `true`.
-  pub fn get_auth_api_insecure_cookie(&self) -> bool {
-    self.auth_api_insecure_cookie.unwrap_or(false)
+  /// Env var: `DPS_BACKEND_INSECURE_COOKIE` using `"Y"` for `true`.
+  pub fn get_backend_insecure_cookie(&self) -> bool {
+    self.backend_insecure_cookie.unwrap_or(false)
   }
 
-  /// Set whether insecure cookies are enabled for Auth API.
-  pub fn set_auth_api_insecure_cookie(&mut self, value: bool) {
-    self.auth_api_insecure_cookie = Some(value);
+  /// Set whether insecure cookies are enabled for Backend API.
+  pub fn set_backend_insecure_cookie(&mut self, value: bool) {
+    self.backend_insecure_cookie = Some(value);
   }
 
-  /// Returns the SQLite main database file path for the Auth API or default
+  /// Returns the SQLite main database file path for the Backend API or default
   /// `"data/main-development.db"`.
   ///
-  /// Env var: `DPS_AUTH_API_SQLITE_MAIN_FILE_PATH`
-  pub fn get_auth_api_sqlite_main_file_path(&self) -> String {
+  /// Env var: `DPS_BACKEND_SQLITE_MAIN_FILE_PATH`
+  pub fn get_backend_sqlite_main_file_path(&self) -> String {
     self
-      .auth_api_sqlite_main_file_path
+      .backend_sqlite_main_file_path
       .clone()
       .unwrap_or_else(|| "data/main-development.db".to_string())
   }
 
-  /// Set the SQLite main database file path for Auth API.
-  pub fn set_auth_api_sqlite_main_file_path(&mut self, value: &str) {
-    self.auth_api_sqlite_main_file_path = Some(value.to_string());
+  /// Set the SQLite main database file path for Backend API.
+  pub fn set_backend_sqlite_main_file_path(&mut self, value: &str) {
+    self.backend_sqlite_main_file_path = Some(value.to_string());
   }
 
-  /// Returns the SQLite main database connection pool size for Auth API.
+  /// Returns the SQLite main database connection pool size for Backend API.
   /// Defaults to `1`.
   ///
-  /// Env var: `DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE`
-  pub fn get_auth_api_sqlite_main_pool_size(&self) -> u16 {
-    self.auth_api_sqlite_main_pool_size.unwrap_or(1)
+  /// Env var: `DPS_BACKEND_SQLITE_MAIN_POOL_SIZE`
+  pub fn get_backend_sqlite_main_pool_size(&self) -> u16 {
+    self.backend_sqlite_main_pool_size.unwrap_or(1)
   }
 
-  /// Set the SQLite main database connection pool size for Auth API.
+  /// Set the SQLite main database connection pool size for Backend API.
   /// Use `None` to reset to default.
-  pub fn set_auth_api_sqlite_main_pool_size(&mut self, value: Option<u16>) {
-    self.auth_api_sqlite_main_pool_size = value;
+  pub fn set_backend_sqlite_main_pool_size(&mut self, value: Option<u16>) {
+    self.backend_sqlite_main_pool_size = value;
   }
 
-  /// Returns the SQLite collection database file path for the Auth API or
+  /// Returns the SQLite collection database file path for the Backend API or
   /// default `"data/collection-development.db"`.
   ///
-  /// Env var: `DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH`
-  pub fn get_auth_api_sqlite_collection_file_path(&self) -> String {
+  /// Env var: `DPS_BACKEND_SQLITE_COLLECTION_FILE_PATH`
+  pub fn get_backend_sqlite_collection_file_path(&self) -> String {
     self
-      .auth_api_sqlite_collection_file_path
+      .backend_sqlite_collection_file_path
       .clone()
       .unwrap_or_else(|| "data/collection-development.db".to_string())
   }
 
-  /// Set the SQLite collection database file path for Auth API.
-  pub fn set_auth_api_sqlite_collection_file_path(&mut self, value: &str) {
-    self.auth_api_sqlite_collection_file_path = Some(value.to_string());
+  /// Set the SQLite collection database file path for Backend API.
+  pub fn set_backend_sqlite_collection_file_path(&mut self, value: &str) {
+    self.backend_sqlite_collection_file_path = Some(value.to_string());
   }
 
-  /// Returns the SQLite collection database connection pool size for Auth API.
+  /// Returns the SQLite collection database connection pool size for Backend API.
   /// Defaults to `1`.
   ///
-  /// Env var: `DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE`
-  pub fn get_auth_api_sqlite_collection_pool_size(&self) -> u16 {
-    self.auth_api_sqlite_collection_pool_size.unwrap_or(1)
+  /// Env var: `DPS_BACKEND_SQLITE_COLLECTION_POOL_SIZE`
+  pub fn get_backend_sqlite_collection_pool_size(&self) -> u16 {
+    self.backend_sqlite_collection_pool_size.unwrap_or(1)
   }
 
-  /// Set the SQLite collection database connection pool size for Auth API.
+  /// Set the SQLite collection database connection pool size for Backend API.
   /// Use `None` to reset to default.
-  pub fn set_auth_api_sqlite_collection_pool_size(&mut self, value: Option<u16>) {
-    self.auth_api_sqlite_collection_pool_size = value;
+  pub fn set_backend_sqlite_collection_pool_size(&mut self, value: Option<u16>) {
+    self.backend_sqlite_collection_pool_size = value;
   }
 
-  /// Returns the SQLite session database file path for the Auth API or default
+  /// Returns the SQLite session database file path for the Backend API or default
   /// `"data/session-development.db"`.
   ///
-  /// Env var: `DPS_AUTH_API_SQLITE_SESSION_FILE_PATH`
-  pub fn get_auth_api_sqlite_session_file_path(&self) -> String {
+  /// Env var: `DPS_BACKEND_SQLITE_SESSION_FILE_PATH`
+  pub fn get_backend_sqlite_session_file_path(&self) -> String {
     self
-      .auth_api_sqlite_session_file_path
+      .backend_sqlite_session_file_path
       .clone()
       .unwrap_or_else(|| "data/session-development.db".to_string())
   }
 
-  /// Set the SQLite session database file path for Auth API.
-  pub fn set_auth_api_sqlite_session_file_path(&mut self, value: &str) {
-    self.auth_api_sqlite_session_file_path = Some(value.to_string());
+  /// Set the SQLite session database file path for Backend API.
+  pub fn set_backend_sqlite_session_file_path(&mut self, value: &str) {
+    self.backend_sqlite_session_file_path = Some(value.to_string());
   }
 
-  /// Returns the SQLite session database connection pool size for Auth API.
+  /// Returns the SQLite session database connection pool size for Backend API.
   /// Defaults to `1`.
   ///
-  /// Env var: `DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE`
-  pub fn get_auth_api_sqlite_session_pool_size(&self) -> u16 {
-    self.auth_api_sqlite_session_pool_size.unwrap_or(1)
+  /// Env var: `DPS_BACKEND_SQLITE_SESSION_POOL_SIZE`
+  pub fn get_backend_sqlite_session_pool_size(&self) -> u16 {
+    self.backend_sqlite_session_pool_size.unwrap_or(1)
   }
 
-  /// Set the SQLite session database connection pool size for Auth API.
+  /// Set the SQLite session database connection pool size for Backend API.
   /// Use `None` to reset to default.
-  pub fn set_auth_api_sqlite_session_pool_size(&mut self, value: Option<u16>) {
-    self.auth_api_sqlite_session_pool_size = value;
+  pub fn set_backend_sqlite_session_pool_size(&mut self, value: Option<u16>) {
+    self.backend_sqlite_session_pool_size = value;
   }
 
-  /// Returns the auth API session secret as an owned `String`, if configured.
+  /// Returns the backend API session secret as an owned `String`, if configured.
   ///
-  /// Env var: `DPS_AUTH_API_SESSION_SECRET`
-  pub fn get_auth_api_session_secret(&self) -> Option<String> {
-    self.auth_api_session_secret.clone()
+  /// Env var: `DPS_BACKEND_SESSION_SECRET`
+  pub fn get_backend_session_secret(&self) -> Option<String> {
+    self.backend_session_secret.clone()
   }
 
-  /// Set or unset the auth API session secret.
-  pub fn set_auth_api_session_secret(&mut self, value: Option<&str>) {
-    self.auth_api_session_secret = value.map(|s| s.to_string());
+  /// Set or unset the backend API session secret.
+  pub fn set_backend_session_secret(&mut self, value: Option<&str>) {
+    self.backend_session_secret = value.map(|s| s.to_string());
   }
 
-  /// Returns the auth API session secret as bytes (`Vec<u8>`), if configured.
+  /// Returns the backend API session secret as bytes (`Vec<u8>`), if configured.
   ///
   /// This convenience getter is useful for supplying secrets to encryption or
   /// session libraries without requiring callers to convert from `String`.
-  pub fn get_auth_api_session_secret_bytes(&self) -> Option<Vec<u8>> {
+  pub fn get_backend_session_secret_bytes(&self) -> Option<Vec<u8>> {
     self
-      .auth_api_session_secret
+      .backend_session_secret
       .as_ref()
       .map(|s| s.as_bytes().to_vec())
   }
 
-  /// Returns the session TTL for auth in seconds. Defaults to 14 days
+  /// Returns the session TTL for backend in seconds. Defaults to 14 days
   /// (1209600 seconds) when not configured.
   ///
-  /// Env var: `DPS_AUTH_API_SESSION_TTL_SECONDS`
-  pub fn get_auth_api_session_ttl_seconds(&self) -> u32 {
-    self.auth_api_session_ttl_seconds.unwrap_or(1209600)
+  /// Env var: `DPS_BACKEND_SESSION_TTL_SECONDS`
+  pub fn get_backend_session_ttl_seconds(&self) -> u32 {
+    self.backend_session_ttl_seconds.unwrap_or(1209600)
   }
 
-  /// Set or unset the auth session TTL in seconds.
-  pub fn set_auth_api_session_ttl_seconds(&mut self, value: Option<u32>) {
-    self.auth_api_session_ttl_seconds = value;
+  /// Set or unset the backend session TTL in seconds.
+  pub fn set_backend_session_ttl_seconds(&mut self, value: Option<u32>) {
+    self.backend_session_ttl_seconds = value;
   }
 
   // --------------------
@@ -409,20 +428,20 @@ impl DpsConfig {
   // Computed getters
   // --------------------
 
-  /// Returns the full Auth API URL, including protocol and optional port.
+  /// Returns the full Backend API URL, including protocol and optional port.
   ///
   /// Examples:
   /// - `https://auth.dps.localhost/api`
   /// - `http://auth.dps.localhost:3000/api`
-  pub fn get_auth_api_url(&self) -> String {
-    let protocol = self.get_auth_api_protocol();
-    let auth_sub = self.get_auth_api_subdomain();
+  pub fn get_backend_url(&self) -> String {
+    let protocol = self.get_backend_protocol();
+    let backend_sub = self.get_backend_subdomain();
     let domain = self.get_domain();
     let api_path = self.get_api_path();
-    if let Some(port) = self.auth_api_port {
-      format!("{protocol}://{auth_sub}.{domain}:{port}/{api_path}")
+    if let Some(port) = self.backend_port {
+      format!("{protocol}://{backend_sub}.{domain}:{port}/{api_path}")
     } else {
-      format!("{protocol}://{auth_sub}.{domain}/{api_path}")
+      format!("{protocol}://{backend_sub}.{domain}/{api_path}")
     }
   }
 }
@@ -473,27 +492,27 @@ mod tests {
     assert_eq!(config.get_domain(), "dps.localhost");
     assert_eq!(config.get_api_path(), "api");
     assert!(!config.get_development_mode());
-    assert_eq!(config.get_auth_api_subdomain(), "auth");
-    assert_eq!(config.get_auth_api_protocol(), "https");
-    assert!(!config.get_auth_api_insecure_cookie());
+    assert_eq!(config.get_backend_subdomain(), "auth");
+    assert_eq!(config.get_backend_protocol(), "https");
+    assert!(!config.get_backend_insecure_cookie());
     assert_eq!(
-      config.get_auth_api_sqlite_main_file_path(),
+      config.get_backend_sqlite_main_file_path(),
       "data/main-development.db"
     );
-    assert_eq!(config.get_auth_api_sqlite_main_pool_size(), 1);
+    assert_eq!(config.get_backend_sqlite_main_pool_size(), 1);
     assert_eq!(
-      config.get_auth_api_sqlite_collection_file_path(),
+      config.get_backend_sqlite_collection_file_path(),
       "data/collection-development.db"
     );
-    assert_eq!(config.get_auth_api_sqlite_collection_pool_size(), 1);
+    assert_eq!(config.get_backend_sqlite_collection_pool_size(), 1);
     assert_eq!(
-      config.get_auth_api_sqlite_session_file_path(),
+      config.get_backend_sqlite_session_file_path(),
       "data/session-development.db"
     );
-    assert_eq!(config.get_auth_api_sqlite_session_pool_size(), 1);
-    assert!(config.get_auth_api_port().is_none());
-    assert!(config.get_auth_api_session_secret().is_none());
-    assert!(config.get_auth_api_session_secret_bytes().is_none());
+    assert_eq!(config.get_backend_sqlite_session_pool_size(), 1);
+    assert!(config.get_backend_port().is_none());
+    assert!(config.get_backend_session_secret().is_none());
+    assert!(config.get_backend_session_secret_bytes().is_none());
   }
 
   #[test]
@@ -503,38 +522,38 @@ mod tests {
     config.set_domain("example.com");
     config.set_api_path("v1");
     config.set_development_mode(true);
-    config.set_auth_api_port(Some(3000));
-    config.set_auth_api_session_secret(Some("s3cr3t"));
+    config.set_backend_port(Some(3000));
+    config.set_backend_session_secret(Some("s3cr3t"));
 
     assert_eq!(config.get_project_name(), "Custom Project");
     assert_eq!(config.get_domain(), "example.com");
     assert_eq!(config.get_api_path(), "v1");
     assert!(config.get_development_mode());
-    assert_eq!(config.get_auth_api_port(), Some(3000));
+    assert_eq!(config.get_backend_port(), Some(3000));
     assert_eq!(
-      config.get_auth_api_session_secret(),
+      config.get_backend_session_secret(),
       Some("s3cr3t".to_string())
     );
   }
 
   #[test]
-  fn test_auth_api_url_without_port() {
+  fn test_backend_url_without_port() {
     let mut config = DpsConfig::new();
-    config.set_auth_api_protocol("https");
-    config.set_auth_api_subdomain("auth");
+    config.set_backend_protocol("https");
+    config.set_backend_subdomain("auth");
     config.set_domain("dps.localhost");
-    assert_eq!(config.get_auth_api_url(), "https://auth.dps.localhost/api");
+    assert_eq!(config.get_backend_url(), "https://auth.dps.localhost/api");
   }
 
   #[test]
-  fn test_auth_api_url_with_port() {
+  fn test_backend_url_with_port() {
     let mut config = DpsConfig::new();
-    config.set_auth_api_protocol("http");
-    config.set_auth_api_port(Some(3000));
-    config.set_auth_api_subdomain("auth");
+    config.set_backend_protocol("http");
+    config.set_backend_port(Some(3000));
+    config.set_backend_subdomain("auth");
     config.set_domain("dps.localhost");
     assert_eq!(
-      config.get_auth_api_url(),
+      config.get_backend_url(),
       "http://auth.dps.localhost:3000/api"
     );
   }
@@ -543,188 +562,237 @@ mod tests {
   fn test_readme_example() {
     let mut config = DpsConfig::new();
     config.set_domain("test.local");
-    config.set_auth_api_protocol("http");
-    config.set_auth_api_port(Some(8080));
-    assert_eq!(config.get_auth_api_url(), "http://auth.test.local:8080/api");
+    config.set_backend_protocol("http");
+    config.set_backend_port(Some(8080));
+    assert_eq!(config.get_backend_url(), "http://auth.test.local:8080/api");
   }
 
   #[test]
   #[serial]
-  fn test_auth_api_insecure_cookie() {
+  fn test_backend_insecure_cookie() {
     // Test setter first (without env var interference)
     let mut c = DpsConfig::new();
-    assert!(!c.get_auth_api_insecure_cookie());
-    c.set_auth_api_insecure_cookie(true);
-    assert!(c.get_auth_api_insecure_cookie());
-    c.set_auth_api_insecure_cookie(false);
-    assert!(!c.get_auth_api_insecure_cookie());
+    assert!(!c.get_backend_insecure_cookie());
+    c.set_backend_insecure_cookie(true);
+    assert!(c.get_backend_insecure_cookie());
+    c.set_backend_insecure_cookie(false);
+    assert!(!c.get_backend_insecure_cookie());
 
     // Test env var loading
-    std::env::set_var("DPS_AUTH_API_INSECURE_COOKIE", "Y");
+    std::env::set_var("DPS_BACKEND_INSECURE_COOKIE", "Y");
     let c2 = DpsConfig::new();
-    assert!(c2.get_auth_api_insecure_cookie());
-    std::env::remove_var("DPS_AUTH_API_INSECURE_COOKIE");
+    assert!(c2.get_backend_insecure_cookie());
+    std::env::remove_var("DPS_BACKEND_INSECURE_COOKIE");
   }
 
   #[test]
   #[serial]
-  fn test_auth_api_sqlite_main_pool_size() {
+  fn test_backend_sqlite_main_pool_size() {
     // Test default and setter
     let mut c = DpsConfig::new();
-    assert_eq!(c.get_auth_api_sqlite_main_pool_size(), 1);
-    c.set_auth_api_sqlite_main_pool_size(Some(12));
-    assert_eq!(c.get_auth_api_sqlite_main_pool_size(), 12);
-    c.set_auth_api_sqlite_main_pool_size(None);
-    assert_eq!(c.get_auth_api_sqlite_main_pool_size(), 1);
+    assert_eq!(c.get_backend_sqlite_main_pool_size(), 1);
+    c.set_backend_sqlite_main_pool_size(Some(12));
+    assert_eq!(c.get_backend_sqlite_main_pool_size(), 12);
+    c.set_backend_sqlite_main_pool_size(None);
+    assert_eq!(c.get_backend_sqlite_main_pool_size(), 1);
 
     // Test env var loading
-    std::env::set_var("DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE", "8");
+    std::env::set_var("DPS_BACKEND_SQLITE_MAIN_POOL_SIZE", "8");
     let c2 = DpsConfig::new();
-    assert_eq!(c2.get_auth_api_sqlite_main_pool_size(), 8);
-    std::env::remove_var("DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE");
+    assert_eq!(c2.get_backend_sqlite_main_pool_size(), 8);
+    std::env::remove_var("DPS_BACKEND_SQLITE_MAIN_POOL_SIZE");
   }
 
   #[test]
   #[serial]
-  fn test_auth_api_sqlite_main_file_path() {
+  fn test_backend_sqlite_main_file_path() {
     // Test default and setter
     let mut c = DpsConfig::new();
     assert_eq!(
-      c.get_auth_api_sqlite_main_file_path(),
+      c.get_backend_sqlite_main_file_path(),
       "data/main-development.db"
     );
-    c.set_auth_api_sqlite_main_file_path("data/custom.db");
-    assert_eq!(c.get_auth_api_sqlite_main_file_path(), "data/custom.db");
+    c.set_backend_sqlite_main_file_path("data/custom.db");
+    assert_eq!(c.get_backend_sqlite_main_file_path(), "data/custom.db");
 
     // Test env var loading
-    std::env::set_var("DPS_AUTH_API_SQLITE_MAIN_FILE_PATH", "data/test-main.db");
+    std::env::set_var("DPS_BACKEND_SQLITE_MAIN_FILE_PATH", "data/test-main.db");
     let c2 = DpsConfig::new();
-    assert_eq!(c2.get_auth_api_sqlite_main_file_path(), "data/test-main.db");
-    std::env::remove_var("DPS_AUTH_API_SQLITE_MAIN_FILE_PATH");
+    assert_eq!(c2.get_backend_sqlite_main_file_path(), "data/test-main.db");
+    std::env::remove_var("DPS_BACKEND_SQLITE_MAIN_FILE_PATH");
   }
 
   #[test]
   #[serial]
-  fn test_auth_api_sqlite_collection_pool_size() {
+  fn test_backend_sqlite_collection_pool_size() {
     // Test default and setter
     let mut c = DpsConfig::new();
-    assert_eq!(c.get_auth_api_sqlite_collection_pool_size(), 1);
-    c.set_auth_api_sqlite_collection_pool_size(Some(12));
-    assert_eq!(c.get_auth_api_sqlite_collection_pool_size(), 12);
-    c.set_auth_api_sqlite_collection_pool_size(None);
-    assert_eq!(c.get_auth_api_sqlite_collection_pool_size(), 1);
+    assert_eq!(c.get_backend_sqlite_collection_pool_size(), 1);
+    c.set_backend_sqlite_collection_pool_size(Some(12));
+    assert_eq!(c.get_backend_sqlite_collection_pool_size(), 12);
+    c.set_backend_sqlite_collection_pool_size(None);
+    assert_eq!(c.get_backend_sqlite_collection_pool_size(), 1);
 
     // Test env var loading
-    std::env::set_var("DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE", "8");
+    std::env::set_var("DPS_BACKEND_SQLITE_COLLECTION_POOL_SIZE", "8");
     let c2 = DpsConfig::new();
-    assert_eq!(c2.get_auth_api_sqlite_collection_pool_size(), 8);
-    std::env::remove_var("DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE");
+    assert_eq!(c2.get_backend_sqlite_collection_pool_size(), 8);
+    std::env::remove_var("DPS_BACKEND_SQLITE_COLLECTION_POOL_SIZE");
   }
 
   #[test]
   #[serial]
-  fn test_auth_api_sqlite_collection_file_path() {
+  fn test_backend_sqlite_collection_file_path() {
     // Test default and setter
     let mut c = DpsConfig::new();
     assert_eq!(
-      c.get_auth_api_sqlite_collection_file_path(),
+      c.get_backend_sqlite_collection_file_path(),
       "data/collection-development.db"
     );
-    c.set_auth_api_sqlite_collection_file_path("data/custom-collection.db");
+    c.set_backend_sqlite_collection_file_path("data/custom-collection.db");
     assert_eq!(
-      c.get_auth_api_sqlite_collection_file_path(),
+      c.get_backend_sqlite_collection_file_path(),
       "data/custom-collection.db"
     );
 
     // Test env var loading
     std::env::set_var(
-      "DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH",
+      "DPS_BACKEND_SQLITE_COLLECTION_FILE_PATH",
       "data/test-collection.db",
     );
     let c2 = DpsConfig::new();
     assert_eq!(
-      c2.get_auth_api_sqlite_collection_file_path(),
+      c2.get_backend_sqlite_collection_file_path(),
       "data/test-collection.db"
     );
-    std::env::remove_var("DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH");
+    std::env::remove_var("DPS_BACKEND_SQLITE_COLLECTION_FILE_PATH");
   }
 
   #[test]
   #[serial]
-  fn test_auth_api_sqlite_session_pool_size() {
+  fn test_backend_sqlite_session_pool_size() {
     // Test default and setter
     let mut c = DpsConfig::new();
-    assert_eq!(c.get_auth_api_sqlite_session_pool_size(), 1);
-    c.set_auth_api_sqlite_session_pool_size(Some(12));
-    assert_eq!(c.get_auth_api_sqlite_session_pool_size(), 12);
-    c.set_auth_api_sqlite_session_pool_size(None);
-    assert_eq!(c.get_auth_api_sqlite_session_pool_size(), 1);
+    assert_eq!(c.get_backend_sqlite_session_pool_size(), 1);
+    c.set_backend_sqlite_session_pool_size(Some(12));
+    assert_eq!(c.get_backend_sqlite_session_pool_size(), 12);
+    c.set_backend_sqlite_session_pool_size(None);
+    assert_eq!(c.get_backend_sqlite_session_pool_size(), 1);
 
     // Test env var loading
-    std::env::set_var("DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE", "8");
+    std::env::set_var("DPS_BACKEND_SQLITE_SESSION_POOL_SIZE", "8");
     let c2 = DpsConfig::new();
-    assert_eq!(c2.get_auth_api_sqlite_session_pool_size(), 8);
-    std::env::remove_var("DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE");
+    assert_eq!(c2.get_backend_sqlite_session_pool_size(), 8);
+    std::env::remove_var("DPS_BACKEND_SQLITE_SESSION_POOL_SIZE");
   }
 
   #[test]
   #[serial]
-  fn test_auth_api_sqlite_session_file_path() {
+  fn test_backend_sqlite_session_file_path() {
     // Test default and setter
     let mut c = DpsConfig::new();
     assert_eq!(
-      c.get_auth_api_sqlite_session_file_path(),
+      c.get_backend_sqlite_session_file_path(),
       "data/session-development.db"
     );
-    c.set_auth_api_sqlite_session_file_path("data/custom-session.db");
+    c.set_backend_sqlite_session_file_path("data/custom-session.db");
     assert_eq!(
-      c.get_auth_api_sqlite_session_file_path(),
+      c.get_backend_sqlite_session_file_path(),
       "data/custom-session.db"
     );
 
     // Test env var loading
     std::env::set_var(
-      "DPS_AUTH_API_SQLITE_SESSION_FILE_PATH",
+      "DPS_BACKEND_SQLITE_SESSION_FILE_PATH",
       "data/test-session.db",
     );
     let c2 = DpsConfig::new();
     assert_eq!(
-      c2.get_auth_api_sqlite_session_file_path(),
+      c2.get_backend_sqlite_session_file_path(),
       "data/test-session.db"
     );
-    std::env::remove_var("DPS_AUTH_API_SQLITE_SESSION_FILE_PATH");
+    std::env::remove_var("DPS_BACKEND_SQLITE_SESSION_FILE_PATH");
   }
 
   #[test]
-  fn test_auth_api_session_secret_bytes() {
-    let mut config = DpsConfig::new();
-    config.set_auth_api_session_secret(Some("my-secret-key"));
+  #[serial]
+  fn test_backend_bind_port_default() {
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+    std::env::remove_var("PORT");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_bind_port(), 3000);
+  }
 
-    let secret_bytes = config.get_auth_api_session_secret_bytes();
+  #[test]
+  #[serial]
+  fn test_backend_bind_port_from_env() {
+    std::env::set_var("DPS_BACKEND_BIND_PORT", "9000");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_bind_port(), 9000);
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+  }
+
+  #[test]
+  #[serial]
+  fn test_backend_bind_port_prefers_dps_over_port() {
+    std::env::set_var("DPS_BACKEND_BIND_PORT", "9000");
+    std::env::set_var("PORT", "8000");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_bind_port(), 9000);
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+    std::env::remove_var("PORT");
+  }
+
+  #[test]
+  #[serial]
+  fn test_backend_bind_port_falls_back_to_port() {
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+    std::env::set_var("PORT", "8000");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_bind_port(), 8000);
+    std::env::remove_var("PORT");
+  }
+
+  #[test]
+  #[serial]
+  fn test_backend_bind_port_does_not_affect_url() {
+    std::env::remove_var("DPS_BACKEND_BIND_PORT");
+    std::env::set_var("PORT", "8000");
+    let c = DpsConfig::new();
+    assert_eq!(c.get_backend_url(), "https://auth.dps.localhost/api");
+    std::env::remove_var("PORT");
+  }
+
+  #[test]
+  fn test_backend_session_secret_bytes() {
+    let mut config = DpsConfig::new();
+    config.set_backend_session_secret(Some("my-secret-key"));
+
+    let secret_bytes = config.get_backend_session_secret_bytes();
     assert!(secret_bytes.is_some());
     assert_eq!(secret_bytes.unwrap(), b"my-secret-key".to_vec());
   }
 
   #[test]
-  fn test_auth_api_session_secret_bytes_none() {
+  fn test_backend_session_secret_bytes_none() {
     let config = DpsConfig::new();
-    assert!(config.get_auth_api_session_secret_bytes().is_none());
+    assert!(config.get_backend_session_secret_bytes().is_none());
   }
 
   #[test]
   #[serial]
-  fn test_auth_api_session_ttl_seconds() {
+  fn test_backend_session_ttl_seconds() {
     // Test default and setter
     let mut c = DpsConfig::new();
-    assert_eq!(c.get_auth_api_session_ttl_seconds(), 1209600); // 14 days
-    c.set_auth_api_session_ttl_seconds(Some(3600));
-    assert_eq!(c.get_auth_api_session_ttl_seconds(), 3600);
+    assert_eq!(c.get_backend_session_ttl_seconds(), 1209600); // 14 days
+    c.set_backend_session_ttl_seconds(Some(3600));
+    assert_eq!(c.get_backend_session_ttl_seconds(), 3600);
 
     // Test env var loading
-    std::env::set_var("DPS_AUTH_API_SESSION_TTL_SECONDS", "1800");
+    std::env::set_var("DPS_BACKEND_SESSION_TTL_SECONDS", "1800");
     let c2 = DpsConfig::new();
-    assert_eq!(c2.get_auth_api_session_ttl_seconds(), 1800);
-    std::env::remove_var("DPS_AUTH_API_SESSION_TTL_SECONDS");
+    assert_eq!(c2.get_backend_session_ttl_seconds(), 1800);
+    std::env::remove_var("DPS_BACKEND_SESSION_TTL_SECONDS");
   }
 
   #[test]

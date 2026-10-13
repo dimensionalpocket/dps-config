@@ -58,8 +58,8 @@ fn main() {
     config.set_api_path("v1");
     config.set_development_mode(true);
 
-    let auth_api_url = config.get_auth_api_url();
-    println!("Auth API URL: {}", auth_api_url);
+    let backend_url = config.get_backend_url();
+    println!("Backend URL: {}", backend_url);
 }
 ```
 
@@ -82,8 +82,8 @@ config.setDomain("example.com");
 config.setApiPath("v1");
 config.setDevelopmentMode(true);
 
-const authApiUrl = config.getAuthApiUrl();
-console.log(`Auth API URL: ${authApiUrl}`);
+const backendUrl = config.getBackendUrl();
+console.log(`Backend URL: ${backendUrl}`);
 
 // Vite support (loads environment variables with VITE_ prefix)
 const viteConfig = new DpsConfig(import.meta.env, "VITE_");
@@ -103,22 +103,28 @@ Each property has a getter (`get_<property_name>()`) and a setter (`set_<propert
 | `api_path` | `DPS_API_PATH` | `api` | Path (without leading slash) for API endpoints |
 | `development_mode` | `DPS_DEVELOPMENT_MODE` | `false` | Enables development-only features |
 
-### DpsAuthApi
+### DpsBackend
 
 | Property | Environment Variable | Default | Description |
 |----------|----------------------|---------|-------------|
-| `auth_api_subdomain` | `DPS_AUTH_API_SUBDOMAIN` | `auth` | Sub-subdomain for DpsAuthApi |
-| `auth_api_port` | `DPS_AUTH_API_PORT` | none | Port for DpsAuthApi (omitted from URL if unset) |
-| `auth_api_protocol` | `DPS_AUTH_API_PROTOCOL` | `https` | Protocol for DpsAuthApi |
-| `auth_api_insecure_cookie` | `DPS_AUTH_API_INSECURE_COOKIE` | `false` | Allow insecure cookies (HTTP) |
-| `auth_api_sqlite_main_file_path` | `DPS_AUTH_API_SQLITE_MAIN_FILE_PATH` | `data/main-development.db` | SQLite main database file path |
-| `auth_api_sqlite_main_pool_size` | `DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE` | `1` | SQLite main database connection pool size |
-| `auth_api_sqlite_collection_file_path` | `DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH` | `data/collection-development.db` | SQLite collection database file path |
-| `auth_api_sqlite_collection_pool_size` | `DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE` | `1` | SQLite collection database connection pool size |
-| `auth_api_sqlite_session_file_path` | `DPS_AUTH_API_SQLITE_SESSION_FILE_PATH` | `data/session-development.db` | SQLite session database file path |
-| `auth_api_sqlite_session_pool_size` | `DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE` | `1` | SQLite session database connection pool size |
-| `auth_api_session_secret` | `DPS_AUTH_API_SESSION_SECRET` | none | 32-byte session secret for encryption |
-| `auth_api_session_ttl_seconds` | `DPS_AUTH_API_SESSION_TTL_SECONDS` | `1209600` (14 days) | Session TTL in seconds |
+| `backend_subdomain` | `DPS_BACKEND_SUBDOMAIN` | `auth` | Sub-subdomain for DpsBackend |
+| `backend_port` | `DPS_BACKEND_PORT` | none | **Public** port appended to the backend URL (omitted if unset) |
+| `backend_bind_port` | `DPS_BACKEND_BIND_PORT` (falls back to `PORT`) | `3000` | Internal port the server binds (never used in URLs) |
+| `backend_protocol` | `DPS_BACKEND_PROTOCOL` | `https` | Protocol for DpsBackend |
+| `backend_insecure_cookie` | `DPS_BACKEND_INSECURE_COOKIE` | `false` | Allow insecure cookies (HTTP) |
+| `backend_sqlite_main_file_path` | `DPS_BACKEND_SQLITE_MAIN_FILE_PATH` | `data/main-development.db` | SQLite main database file path |
+| `backend_sqlite_main_pool_size` | `DPS_BACKEND_SQLITE_MAIN_POOL_SIZE` | `1` | SQLite main database connection pool size |
+| `backend_sqlite_collection_file_path` | `DPS_BACKEND_SQLITE_COLLECTION_FILE_PATH` | `data/collection-development.db` | SQLite collection database file path |
+| `backend_sqlite_collection_pool_size` | `DPS_BACKEND_SQLITE_COLLECTION_POOL_SIZE` | `1` | SQLite collection database connection pool size |
+| `backend_sqlite_session_file_path` | `DPS_BACKEND_SQLITE_SESSION_FILE_PATH` | `data/session-development.db` | SQLite session database file path |
+| `backend_sqlite_session_pool_size` | `DPS_BACKEND_SQLITE_SESSION_POOL_SIZE` | `1` | SQLite session database connection pool size |
+| `backend_session_secret` | `DPS_BACKEND_SESSION_SECRET` | none | 32-byte session secret for encryption |
+| `backend_session_ttl_seconds` | `DPS_BACKEND_SESSION_TTL_SECONDS` | `1209600` (14 days) | Session TTL in seconds |
+
+> `backend_port` is the **public** port used when building URLs. `backend_bind_port` is the
+> **internal** port the process listens on, resolved from `DPS_BACKEND_BIND_PORT`, then the generic
+> `PORT` environment variable (e.g. injected by a platform like Railway), then `3000`. The two are
+> independent: behind a proxy, `DPS_BACKEND_PORT` is typically unset while `PORT` is set.
 
 ### Session Conversion Functions (Rust only)
 
@@ -169,18 +175,18 @@ fn configure_with_custom_errors(config: &mut DpsConfig) {
 
 Computed getters derive values from base properties and have no setters or environment variables.
 
-- `get_auth_api_url()` — returns `{protocol}://{auth_api_subdomain}.{domain}/{api_path}` (with `:{port}` appended after domain when port is set)
-- `get_auth_api_session_secret_bytes()` — returns session secret as `Vec<u8>` for encryption libraries
+- `get_backend_url()` — returns `{protocol}://{backend_subdomain}.{domain}/{api_path}` (with `:{port}` appended after domain when port is set)
+- `get_backend_session_secret_bytes()` — returns session secret as `Vec<u8>` for encryption libraries
 
 ```rust
 let mut c = DpsConfig::new();
 c.set_api_path("v1");
 c.set_domain("dps.localhost");
-assert_eq!(c.get_auth_api_url(), "https://auth.dps.localhost/v1");
+assert_eq!(c.get_backend_url(), "https://auth.dps.localhost/v1");
 
 // Session secret as bytes (convenient for encryption libraries)
-c.set_auth_api_session_secret(Some("my-32-byte-secret-key-here!!!"));
-if let Some(secret_bytes) = c.get_auth_api_session_secret_bytes() {
+c.set_backend_session_secret(Some("my-32-byte-secret-key-here!!!"));
+if let Some(secret_bytes) = c.get_backend_session_secret_bytes() {
     assert_eq!(secret_bytes.len(), 32);
 }
 ```
@@ -196,17 +202,20 @@ Example (development):
 export DPS_DOMAIN="dps.localhost"
 export DPS_API_PATH="api"
 export DPS_DEVELOPMENT_MODE="Y"
-export DPS_AUTH_API_PROTOCOL="http"
-export DPS_AUTH_API_PORT="3000"
-export DPS_AUTH_API_INSECURE_COOKIE="Y"
-export DPS_AUTH_API_SQLITE_MAIN_FILE_PATH="data/main-development.db"
-export DPS_AUTH_API_SQLITE_MAIN_POOL_SIZE="4"
-export DPS_AUTH_API_SQLITE_COLLECTION_FILE_PATH="data/collection-development.db"
-export DPS_AUTH_API_SQLITE_COLLECTION_POOL_SIZE="4"
-export DPS_AUTH_API_SQLITE_SESSION_FILE_PATH="data/session-development.db"
-export DPS_AUTH_API_SQLITE_SESSION_POOL_SIZE="4"
-export DPS_AUTH_API_SESSION_SECRET="dev-secret-key-32-bytes-long!"
-export DPS_AUTH_API_SESSION_TTL_SECONDS="1209600"
+export DPS_BACKEND_PROTOCOL="http"
+export DPS_BACKEND_PORT="3000"
+export DPS_BACKEND_BIND_PORT="3000"
+# or, on a platform that injects it:
+export PORT="8000"
+export DPS_BACKEND_INSECURE_COOKIE="Y"
+export DPS_BACKEND_SQLITE_MAIN_FILE_PATH="data/main-development.db"
+export DPS_BACKEND_SQLITE_MAIN_POOL_SIZE="4"
+export DPS_BACKEND_SQLITE_COLLECTION_FILE_PATH="data/collection-development.db"
+export DPS_BACKEND_SQLITE_COLLECTION_POOL_SIZE="4"
+export DPS_BACKEND_SQLITE_SESSION_FILE_PATH="data/session-development.db"
+export DPS_BACKEND_SQLITE_SESSION_POOL_SIZE="4"
+export DPS_BACKEND_SESSION_SECRET="dev-secret-key-32-bytes-long!"
+export DPS_BACKEND_SESSION_TTL_SECONDS="1209600"
 ```
 
 ## Usage Examples
@@ -219,24 +228,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn auth_url_builds() {
+    fn backend_url_builds() {
         let mut c = DpsConfig::new();
         c.set_domain("test.local");
         c.set_api_path("v1");
-        c.set_auth_api_protocol("http");
-        c.set_auth_api_port(Some(8080));
-        assert_eq!(c.get_auth_api_url(), "http://auth.test.local:8080/v1");
+        c.set_backend_protocol("http");
+        c.set_backend_port(Some(8080));
+        assert_eq!(c.get_backend_url(), "http://auth.test.local:8080/v1");
     }
 
     #[test]
-    fn auth_session_ttl_examples() {
+    fn backend_session_ttl_examples() {
         let mut c = DpsConfig::new();
 
         // default is 14 days in seconds
-        assert_eq!(c.get_auth_api_session_ttl_seconds(), 1209600);
+        assert_eq!(c.get_backend_session_ttl_seconds(), 1209600);
 
-        c.set_auth_api_session_ttl_seconds(Some(3600));
-        assert_eq!(c.get_auth_api_session_ttl_seconds(), 3600);
+        c.set_backend_session_ttl_seconds(Some(3600));
+        assert_eq!(c.get_backend_session_ttl_seconds(), 3600);
     }
 }
 ```
